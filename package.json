@@ -2,7 +2,7 @@
   "name": "dilops-file-browser",
   "displayName": "File Browser",
   "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "publisher": "dilops",
   "engines": {
     "vscode": "^1.84.0"
@@ -179,6 +179,12 @@
           "type": "boolean",
           "default": true,
           "description": "Show relative modification time next to each file and folder."
+        },
+        "dilopsFileBrowser.watchPollingIntervalMs": {
+          "type": "number",
+          "default": 3000,
+          "minimum": 500,
+          "description": "How often (ms) to poll expanded directories for external changes. Needed because inotify (fs.watch) is unreliable over NFS. Lower = snappier, higher = fewer NFS round-trips."
         },
         "dilopsFileBrowser.showBookmarkDiskUsage": {
           "type": "boolean",

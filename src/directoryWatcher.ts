@@ -1,75 +1,140 @@
 import * as fs from 'fs';
+import * as fsp from 'fs/promises';
 import * as vscode from 'vscode';
 
+const DEFAULT_POLL_MS = 3000;
+const DEBOUNCE_MS = 200;
+
+interface WatchEntry {
+  fsWatcher?: fs.FSWatcher;
+  poller?: NodeJS.Timeout;
+  signature: string;
+  pending?: NodeJS.Timeout;
+}
+
 /**
- * Watches directories the user has expanded in the tree, so external file
- * additions/removals (e.g. Slurm output landing in ~/) update the tree
- * without a manual refresh.
+ * Watches directories the user has expanded so external file additions /
+ * removals (Slurm output, `mv` from a shell, git branch checkout) update
+ * the tree without a manual refresh.
  *
- * NFS + fs.watch on Linux is notoriously unreliable — the FS event stream
- * often drops changes made from another host. We accept this: fs.watch is
- * "good enough" for local changes and edits made from the same session,
- * and users always have the refresh button for a hard sync.
+ * On Gauss basically everything is NFS-mounted, and inotify (fs.watch)
+ * doesn't reliably deliver events for NFS. So we use a two-pronged
+ * approach: fs.watch gives near-instant refresh when it works (local FS,
+ * some SMB mounts) and a periodic readdir poll catches everything else.
+ * The poll signature is a sorted list of "name:type" strings computed
+ * from readdir(withFileTypes) — cheap enough to run every few seconds.
  */
 export class DirectoryWatcher implements vscode.Disposable {
-  private readonly watchers = new Map<string, fs.FSWatcher>();
-  private readonly pending = new Map<string, NodeJS.Timeout>();
+  private readonly entries = new Map<string, WatchEntry>();
 
   constructor(private readonly onChange: (dir: string) => void) {}
 
   watch(dir: string): void {
-    if (this.watchers.has(dir)) {
+    if (this.entries.has(dir)) {
       return;
     }
+    const entry: WatchEntry = { signature: '' };
+    this.entries.set(dir, entry);
+
+    // Prime the signature so the first poll doesn't spuriously fire.
+    this.computeSignature(dir).then(sig => {
+      const current = this.entries.get(dir);
+      if (current) {
+        current.signature = sig;
+      }
+    }).catch(() => undefined);
+
     try {
-      const watcher = fs.watch(dir, { persistent: false }, () => this.schedule(dir));
-      watcher.on('error', () => this.unwatch(dir));
-      this.watchers.set(dir, watcher);
+      entry.fsWatcher = fs.watch(dir, { persistent: false }, () => this.schedule(dir));
+      entry.fsWatcher.on('error', () => {
+        entry.fsWatcher?.close();
+        entry.fsWatcher = undefined;
+      });
     } catch {
-      // fs.watch not supported for this path — silently degrade.
+      // fs.watch not supported — polling will still cover us.
     }
+
+    const interval = pollingInterval();
+    entry.poller = setInterval(() => this.pollOnce(dir), interval);
   }
 
   unwatch(dir: string): void {
-    const watcher = this.watchers.get(dir);
-    if (watcher) {
-      try {
-        watcher.close();
-      } catch {
-        /* ignore */
-      }
-      this.watchers.delete(dir);
+    const entry = this.entries.get(dir);
+    if (!entry) {
+      return;
     }
-    const pending = this.pending.get(dir);
-    if (pending) {
-      clearTimeout(pending);
-      this.pending.delete(dir);
+    try {
+      entry.fsWatcher?.close();
+    } catch {
+      /* ignore */
+    }
+    if (entry.poller) {
+      clearInterval(entry.poller);
+    }
+    if (entry.pending) {
+      clearTimeout(entry.pending);
+    }
+    this.entries.delete(dir);
+  }
+
+  private async pollOnce(dir: string): Promise<void> {
+    const entry = this.entries.get(dir);
+    if (!entry) {
+      return;
+    }
+    const sig = await this.computeSignature(dir);
+    if (sig !== entry.signature) {
+      entry.signature = sig;
+      this.schedule(dir);
     }
   }
 
   private schedule(dir: string): void {
-    const existing = this.pending.get(dir);
-    if (existing) {
-      clearTimeout(existing);
+    const entry = this.entries.get(dir);
+    if (!entry) {
+      return;
     }
-    this.pending.set(dir, setTimeout(() => {
-      this.pending.delete(dir);
+    if (entry.pending) {
+      clearTimeout(entry.pending);
+    }
+    entry.pending = setTimeout(() => {
+      entry.pending = undefined;
+      // Refresh signature so the poller doesn't re-fire immediately.
+      this.computeSignature(dir).then(sig => {
+        const current = this.entries.get(dir);
+        if (current) {
+          current.signature = sig;
+        }
+      }).catch(() => undefined);
       this.onChange(dir);
-    }, 200));
+    }, DEBOUNCE_MS);
+  }
+
+  private async computeSignature(dir: string): Promise<string> {
+    try {
+      const entries = await fsp.readdir(dir, { withFileTypes: true });
+      const parts = entries
+        .map(e => `${e.name}:${e.isDirectory() ? 'd' : e.isSymbolicLink() ? 'l' : 'f'}`)
+        .sort();
+      return parts.join('|');
+    } catch {
+      return '<unreadable>';
+    }
   }
 
   dispose(): void {
-    for (const watcher of this.watchers.values()) {
-      try {
-        watcher.close();
-      } catch {
-        /* ignore */
-      }
+    for (const dir of [...this.entries.keys()]) {
+      this.unwatch(dir);
     }
-    this.watchers.clear();
-    for (const timeout of this.pending.values()) {
-      clearTimeout(timeout);
-    }
-    this.pending.clear();
   }
+}
+
+function pollingInterval(): number {
+  const configured = vscode.workspace
+    .getConfiguration('dilopsFileBrowser')
+    .get<number>('watchPollingIntervalMs', DEFAULT_POLL_MS);
+  if (!Number.isFinite(configured) || configured < 500) {
+    return DEFAULT_POLL_MS;
+  }
+  return Math.floor(configured);
 }
