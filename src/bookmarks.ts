@@ -106,6 +106,35 @@ export class BookmarkStore {
     await this.persistBookmarks([...map.values()]);
   }
 
+  async moveBookmark(id: string, direction: 'up' | 'down'): Promise<boolean> {
+    const target = this.findBookmark(id);
+    if (!target) {
+      return false;
+    }
+    const siblings = this.bookmarksInGroup(target.groupId);
+    const currentIdx = siblings.findIndex(b => b.id === id);
+    const swapIdx = direction === 'up' ? currentIdx - 1 : currentIdx + 1;
+    if (currentIdx < 0 || swapIdx < 0 || swapIdx >= siblings.length) {
+      return false;
+    }
+    const reordered = [...siblings];
+    [reordered[currentIdx], reordered[swapIdx]] = [reordered[swapIdx], reordered[currentIdx]];
+    // Rebuild a full ordered list preserving the positions of other groups' items.
+    const all = this.listBookmarks();
+    const reorderedIds = new Set(reordered.map(b => b.id));
+    const finalOrder: Bookmark[] = [];
+    let siblingIdx = 0;
+    for (const bm of all) {
+      if (reorderedIds.has(bm.id)) {
+        finalOrder.push(reordered[siblingIdx++]);
+      } else {
+        finalOrder.push(bm);
+      }
+    }
+    await this.reorderBookmarks(finalOrder.map(b => b.id));
+    return true;
+  }
+
   async addGroup(label: string): Promise<Group> {
     const groups = this.listGroups();
     const group: Group = {
@@ -128,6 +157,20 @@ export class BookmarkStore {
     }
     await this.persistGroups(groups);
     await this.persistBookmarks(bookmarks);
+  }
+
+  async moveGroup(id: string, direction: 'up' | 'down'): Promise<boolean> {
+    const groups = this.listGroups();
+    const currentIdx = groups.findIndex(g => g.id === id);
+    const swapIdx = direction === 'up' ? currentIdx - 1 : currentIdx + 1;
+    if (currentIdx < 0 || swapIdx < 0 || swapIdx >= groups.length) {
+      return false;
+    }
+    const reordered = [...groups];
+    [reordered[currentIdx], reordered[swapIdx]] = [reordered[swapIdx], reordered[currentIdx]];
+    reordered.forEach((g, i) => { g.order = i; });
+    await this.persistGroups(reordered);
+    return true;
   }
 
   async renameGroup(id: string, newLabel: string): Promise<void> {

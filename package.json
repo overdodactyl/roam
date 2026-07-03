@@ -2,7 +2,7 @@
   "name": "dilops-file-browser",
   "displayName": "File Browser",
   "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "publisher": "dilops",
   "engines": {
     "vscode": "^1.84.0"
@@ -82,7 +82,11 @@
       { "command": "dilopsFileBrowser.download", "title": "Download to My Computer…", "category": "File Browser", "icon": "$(cloud-download)" },
       { "command": "dilopsFileBrowser.openFolder", "title": "Open Folder", "category": "File Browser" },
       { "command": "dilopsFileBrowser.openFolderInNewWindow", "title": "Open Folder in New Window", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.addToWorkspace", "title": "Add Folder to Workspace", "category": "File Browser" }
+      { "command": "dilopsFileBrowser.addToWorkspace", "title": "Add Folder to Workspace", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.moveBookmarkUp", "title": "Move Up", "category": "File Browser", "icon": "$(arrow-up)" },
+      { "command": "dilopsFileBrowser.moveBookmarkDown", "title": "Move Down", "category": "File Browser", "icon": "$(arrow-down)" },
+      { "command": "dilopsFileBrowser.moveGroupUp", "title": "Move Group Up", "category": "File Browser", "icon": "$(arrow-up)" },
+      { "command": "dilopsFileBrowser.moveGroupDown", "title": "Move Group Down", "category": "File Browser", "icon": "$(arrow-down)" }
     ],
     "menus": {
       "commandPalette": [
@@ -110,7 +114,11 @@
         { "command": "dilopsFileBrowser.download", "when": "false" },
         { "command": "dilopsFileBrowser.openFolder", "when": "false" },
         { "command": "dilopsFileBrowser.openFolderInNewWindow", "when": "false" },
-        { "command": "dilopsFileBrowser.addToWorkspace", "when": "false" }
+        { "command": "dilopsFileBrowser.addToWorkspace", "when": "false" },
+        { "command": "dilopsFileBrowser.moveBookmarkUp", "when": "false" },
+        { "command": "dilopsFileBrowser.moveBookmarkDown", "when": "false" },
+        { "command": "dilopsFileBrowser.moveGroupUp", "when": "false" },
+        { "command": "dilopsFileBrowser.moveGroupDown", "when": "false" }
       ],
       "view/title": [
         { "command": "dilopsFileBrowser.addBookmark", "when": "view == dilopsFileBrowser.tree", "group": "navigation@1" },
@@ -144,6 +152,10 @@
         { "command": "dilopsFileBrowser.rename", "when": "view == dilopsFileBrowser.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@1" },
         { "command": "dilopsFileBrowser.duplicate", "when": "view == dilopsFileBrowser.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@2" },
         { "command": "dilopsFileBrowser.delete", "when": "view == dilopsFileBrowser.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@3" },
+        { "command": "dilopsFileBrowser.moveBookmarkUp", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "1b_move@1" },
+        { "command": "dilopsFileBrowser.moveBookmarkDown", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "1b_move@2" },
+        { "command": "dilopsFileBrowser.moveGroupUp", "when": "view == dilopsFileBrowser.tree && viewItem == group", "group": "1b_move@1" },
+        { "command": "dilopsFileBrowser.moveGroupDown", "when": "view == dilopsFileBrowser.tree && viewItem == group", "group": "1b_move@2" },
         { "command": "dilopsFileBrowser.renameBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "2_modify@1" },
         { "command": "dilopsFileBrowser.moveBookmarkToGroup", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "2_modify@2" },
         { "command": "dilopsFileBrowser.removeBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "2_modify@3" },

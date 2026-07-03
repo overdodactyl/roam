@@ -128,6 +128,18 @@ export function registerCommands(
     await store.addBookmark(node.path);
   }));
 
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.moveBookmarkUp', async (node?: Node) => {
+    if (node?.kind === 'bookmark') {
+      await store.moveBookmark(node.bookmark.id, 'up');
+    }
+  }));
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.moveBookmarkDown', async (node?: Node) => {
+    if (node?.kind === 'bookmark') {
+      await store.moveBookmark(node.bookmark.id, 'down');
+    }
+  }));
+
   // --- Groups -----------------------------------------------------------
 
   sub.push(vscode.commands.registerCommand('dilopsFileBrowser.newGroup', async () => {
@@ -155,6 +167,18 @@ export function registerCommands(
       return;
     }
     await store.renameGroup(node.group.id, newLabel.trim());
+  }));
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.moveGroupUp', async (node?: Node) => {
+    if (node?.kind === 'group') {
+      await store.moveGroup(node.group.id, 'up');
+    }
+  }));
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.moveGroupDown', async (node?: Node) => {
+    if (node?.kind === 'group') {
+      await store.moveGroup(node.group.id, 'down');
+    }
   }));
 
   sub.push(vscode.commands.registerCommand('dilopsFileBrowser.deleteGroup', async (node?: Node) => {
