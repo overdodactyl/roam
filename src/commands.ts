@@ -9,6 +9,7 @@ import { BrowserClipboard, ClipboardMode } from './clipboard';
 import { TypeFilterStore, parseExtensionList } from './typeFilter';
 import { DiskUsageCache } from './diskUsage';
 import { downloadFile } from './download';
+import { collapseHome, expandHome } from './utils';
 
 export function registerCommands(
   context: vscode.ExtensionContext,
@@ -696,7 +697,7 @@ async function promptDelete(targets: string[], permanent: boolean): Promise<bool
   const button = permanent ? 'Permanently Delete' : 'Move to Trash';
   const label = targets.length === 1
     ? `${verb}: ${collapseHome(targets[0])}?`
-    : `${verb} ${targets.length} items?\n\n${targets.slice(0, 8).map(collapseHome).join('\n')}${targets.length > 8 ? `\n… and ${targets.length - 8} more` : ''}`;
+    : `${verb} ${targets.length} items?\n\n${targets.slice(0, 8).map(t => collapseHome(t)).join('\n')}${targets.length > 8 ? `\n… and ${targets.length - 8} more` : ''}`;
   const choice = await vscode.window.showWarningMessage(label, { modal: true }, button);
   return choice === button;
 }
@@ -863,30 +864,6 @@ function shellQuote(p: string): string {
   return `'${p.replace(/'/g, `'\\''`)}'`;
 }
 
-function expandHome(input: string): string {
-  const home = process.env.HOME;
-  if (!home) {
-    return path.resolve(input);
-  }
-  if (input === '~') {
-    return home;
-  }
-  if (input.startsWith('~/')) {
-    return path.resolve(path.join(home, input.slice(2)));
-  }
-  return path.resolve(input);
-}
-
-function collapseHome(p: string): string {
-  const home = process.env.HOME;
-  if (home && p.startsWith(home + path.sep)) {
-    return '~' + p.slice(home.length);
-  }
-  if (home && p === home) {
-    return '~';
-  }
-  return p;
-}
 
 async function revealPath(
   store: BookmarkStore,

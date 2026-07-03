@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { normalizeExtensions } from './utils';
 
 const KEY = 'roam.typeFilter';
 const CONTEXT = 'roam.typeFilterActive';
@@ -44,18 +45,4 @@ export class TypeFilterStore {
   }
 }
 
-export function normalizeExtensions(exts: string[]): string[] {
-  const set = new Set<string>();
-  for (const raw of exts) {
-    const trimmed = raw.trim().toLowerCase();
-    if (!trimmed) {
-      continue;
-    }
-    set.add(trimmed.startsWith('.') ? trimmed : `.${trimmed}`);
-  }
-  return [...set].sort();
-}
-
-export function parseExtensionList(input: string): string[] {
-  return input.split(/[,\s]+/g).map(s => s.trim()).filter(Boolean);
-}
+export { normalizeExtensions, parseExtensionList } from './utils';

@@ -12,11 +12,19 @@
   "bugs": {
     "url": "https://github.com/overdodactyl/roam/issues"
   },
-  "keywords": ["file browser", "bookmarks", "explorer", "remote ssh", "positron"],
+  "keywords": [
+    "file browser",
+    "bookmarks",
+    "explorer",
+    "remote ssh",
+    "positron"
+  ],
   "engines": {
     "vscode": "^1.84.0"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "icon": "icon.png",
   "activationEvents": [
     "onView:roam.tree"
@@ -49,135 +57,619 @@
       }
     ],
     "commands": [
-      { "command": "roam.addBookmark", "title": "Add Bookmark…", "category": "Roam", "icon": "$(add)" },
-      { "command": "roam.addBookmarkByPath", "title": "Add Bookmark by Path…", "category": "Roam" },
-      { "command": "roam.removeBookmark", "title": "Remove Bookmark", "category": "Roam", "icon": "$(remove)" },
-      { "command": "roam.renameBookmark", "title": "Rename Bookmark…", "category": "Roam", "icon": "$(edit)" },
-      { "command": "roam.moveBookmarkToGroup", "title": "Move to Group…", "category": "Roam" },
-      { "command": "roam.newGroup", "title": "New Group…", "category": "Roam", "icon": "$(new-folder)" },
-      { "command": "roam.renameGroup", "title": "Rename Group…", "category": "Roam" },
-      { "command": "roam.deleteGroup", "title": "Delete Group…", "category": "Roam" },
-      { "command": "roam.refresh", "title": "Refresh", "category": "Roam", "icon": "$(refresh)" },
-      { "command": "roam.enableShowHiddenFiles", "title": "Show Hidden Files", "category": "Roam", "icon": "$(eye)" },
-      { "command": "roam.disableShowHiddenFiles", "title": "Hide Hidden Files", "category": "Roam", "icon": "$(eye-closed)" },
-      { "command": "roam.revealInOS", "title": "Reveal in OS File Manager", "category": "Roam" },
-      { "command": "roam.copyPath", "title": "Copy Path", "category": "Roam" },
-      { "command": "roam.openInTerminal", "title": "Open in Integrated Terminal", "category": "Roam" },
-      { "command": "roam.addChildAsBookmark", "title": "Bookmark This Folder", "category": "Roam" },
-      { "command": "roam.openFile", "title": "Open File", "category": "Roam" },
-      { "command": "roam.clearRecent", "title": "Clear Recent Files", "category": "Roam", "icon": "$(clear-all)" },
-      { "command": "roam.newFile", "title": "New File…", "category": "Roam", "icon": "$(new-file)" },
-      { "command": "roam.newFolder", "title": "New Folder…", "category": "Roam", "icon": "$(new-folder)" },
-      { "command": "roam.rename", "title": "Rename…", "category": "Roam" },
-      { "command": "roam.delete", "title": "Delete (Move to Trash)", "category": "Roam" },
-      { "command": "roam.duplicate", "title": "Duplicate", "category": "Roam" },
-      { "command": "roam.searchInBookmark", "title": "Search Files…", "category": "Roam", "icon": "$(search)" },
-      { "command": "roam.goToPath", "title": "Go To Path…", "category": "Roam", "icon": "$(go-to-file)" },
-      { "command": "roam.sortBy", "title": "Sort By…", "category": "Roam", "icon": "$(sort-precedence)" },
-      { "command": "roam.enableShowModified", "title": "Show Modified Dates", "category": "Roam", "icon": "$(calendar)" },
-      { "command": "roam.disableShowModified", "title": "Hide Modified Dates", "category": "Roam", "icon": "$(calendar)" },
-      { "command": "roam.enableShowSize", "title": "Show File Sizes", "category": "Roam", "icon": "$(symbol-numeric)" },
-      { "command": "roam.disableShowSize", "title": "Hide File Sizes", "category": "Roam", "icon": "$(symbol-numeric)" },
-      { "command": "roam.copy", "title": "Copy", "category": "Roam" },
-      { "command": "roam.cut", "title": "Cut", "category": "Roam" },
-      { "command": "roam.paste", "title": "Paste", "category": "Roam" },
-      { "command": "roam.clearClipboard", "title": "Clear Clipboard", "category": "Roam" },
-      { "command": "roam.revealActiveEditor", "title": "Reveal Active Editor File", "category": "Roam", "icon": "$(target)" },
-      { "command": "roam.compare", "title": "Compare Files", "category": "Roam" },
-      { "command": "roam.setTypeFilter", "title": "Filter by File Type…", "category": "Roam", "icon": "$(filter)" },
-      { "command": "roam.runFile", "title": "Run File", "category": "Roam", "icon": "$(play)" },
-      { "command": "roam.refreshDiskUsage", "title": "Refresh Disk Usage (all bookmarks)", "category": "Roam" },
-      { "command": "roam.showBookmarkDiskUsage", "title": "Compute Disk Usage", "category": "Roam" },
-      { "command": "roam.showLog", "title": "Show Log", "category": "Roam" },
-      { "command": "roam.download", "title": "Download to My Computer…", "category": "Roam", "icon": "$(cloud-download)" },
-      { "command": "roam.openFolder", "title": "Open Folder", "category": "Roam" },
-      { "command": "roam.openFolderInNewWindow", "title": "Open Folder in New Window", "category": "Roam" },
-      { "command": "roam.addToWorkspace", "title": "Add Folder to Workspace", "category": "Roam" },
-      { "command": "roam.moveBookmarkUp", "title": "Move Up", "category": "Roam", "icon": "$(arrow-up)" },
-      { "command": "roam.moveBookmarkDown", "title": "Move Down", "category": "Roam", "icon": "$(arrow-down)" },
-      { "command": "roam.moveGroupUp", "title": "Move Group Up", "category": "Roam", "icon": "$(arrow-up)" },
-      { "command": "roam.moveGroupDown", "title": "Move Group Down", "category": "Roam", "icon": "$(arrow-down)" }
+      {
+        "command": "roam.addBookmark",
+        "title": "Add Bookmark…",
+        "category": "Roam",
+        "icon": "$(add)"
+      },
+      {
+        "command": "roam.addBookmarkByPath",
+        "title": "Add Bookmark by Path…",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.removeBookmark",
+        "title": "Remove Bookmark",
+        "category": "Roam",
+        "icon": "$(remove)"
+      },
+      {
+        "command": "roam.renameBookmark",
+        "title": "Rename Bookmark…",
+        "category": "Roam",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "roam.moveBookmarkToGroup",
+        "title": "Move to Group…",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.newGroup",
+        "title": "New Group…",
+        "category": "Roam",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "roam.renameGroup",
+        "title": "Rename Group…",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.deleteGroup",
+        "title": "Delete Group…",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.refresh",
+        "title": "Refresh",
+        "category": "Roam",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "roam.enableShowHiddenFiles",
+        "title": "Show Hidden Files",
+        "category": "Roam",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "roam.disableShowHiddenFiles",
+        "title": "Hide Hidden Files",
+        "category": "Roam",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "roam.revealInOS",
+        "title": "Reveal in OS File Manager",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.copyPath",
+        "title": "Copy Path",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.openInTerminal",
+        "title": "Open in Integrated Terminal",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.addChildAsBookmark",
+        "title": "Bookmark This Folder",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.openFile",
+        "title": "Open File",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.clearRecent",
+        "title": "Clear Recent Files",
+        "category": "Roam",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "roam.newFile",
+        "title": "New File…",
+        "category": "Roam",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "roam.newFolder",
+        "title": "New Folder…",
+        "category": "Roam",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "roam.rename",
+        "title": "Rename…",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.delete",
+        "title": "Delete (Move to Trash)",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.duplicate",
+        "title": "Duplicate",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.searchInBookmark",
+        "title": "Search Files…",
+        "category": "Roam",
+        "icon": "$(search)"
+      },
+      {
+        "command": "roam.goToPath",
+        "title": "Go To Path…",
+        "category": "Roam",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "roam.sortBy",
+        "title": "Sort By…",
+        "category": "Roam",
+        "icon": "$(sort-precedence)"
+      },
+      {
+        "command": "roam.enableShowModified",
+        "title": "Show Modified Dates",
+        "category": "Roam",
+        "icon": "$(calendar)"
+      },
+      {
+        "command": "roam.disableShowModified",
+        "title": "Hide Modified Dates",
+        "category": "Roam",
+        "icon": "$(calendar)"
+      },
+      {
+        "command": "roam.enableShowSize",
+        "title": "Show File Sizes",
+        "category": "Roam",
+        "icon": "$(symbol-numeric)"
+      },
+      {
+        "command": "roam.disableShowSize",
+        "title": "Hide File Sizes",
+        "category": "Roam",
+        "icon": "$(symbol-numeric)"
+      },
+      {
+        "command": "roam.copy",
+        "title": "Copy",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.cut",
+        "title": "Cut",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.paste",
+        "title": "Paste",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.clearClipboard",
+        "title": "Clear Clipboard",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.revealActiveEditor",
+        "title": "Reveal Active Editor File",
+        "category": "Roam",
+        "icon": "$(target)"
+      },
+      {
+        "command": "roam.compare",
+        "title": "Compare Files",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.setTypeFilter",
+        "title": "Filter by File Type…",
+        "category": "Roam",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "roam.runFile",
+        "title": "Run File",
+        "category": "Roam",
+        "icon": "$(play)"
+      },
+      {
+        "command": "roam.refreshDiskUsage",
+        "title": "Refresh Disk Usage (all bookmarks)",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.showBookmarkDiskUsage",
+        "title": "Compute Disk Usage",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.showLog",
+        "title": "Show Log",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.download",
+        "title": "Download to My Computer…",
+        "category": "Roam",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "roam.openFolder",
+        "title": "Open Folder",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.openFolderInNewWindow",
+        "title": "Open Folder in New Window",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.addToWorkspace",
+        "title": "Add Folder to Workspace",
+        "category": "Roam"
+      },
+      {
+        "command": "roam.moveBookmarkUp",
+        "title": "Move Up",
+        "category": "Roam",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "roam.moveBookmarkDown",
+        "title": "Move Down",
+        "category": "Roam",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "roam.moveGroupUp",
+        "title": "Move Group Up",
+        "category": "Roam",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "roam.moveGroupDown",
+        "title": "Move Group Down",
+        "category": "Roam",
+        "icon": "$(arrow-down)"
+      }
     ],
     "menus": {
       "commandPalette": [
-        { "command": "roam.removeBookmark", "when": "false" },
-        { "command": "roam.renameBookmark", "when": "false" },
-        { "command": "roam.moveBookmarkToGroup", "when": "false" },
-        { "command": "roam.renameGroup", "when": "false" },
-        { "command": "roam.deleteGroup", "when": "false" },
-        { "command": "roam.revealInOS", "when": "false" },
-        { "command": "roam.copyPath", "when": "false" },
-        { "command": "roam.openInTerminal", "when": "false" },
-        { "command": "roam.addChildAsBookmark", "when": "false" },
-        { "command": "roam.openFile", "when": "false" },
-        { "command": "roam.newFile", "when": "false" },
-        { "command": "roam.newFolder", "when": "false" },
-        { "command": "roam.rename", "when": "false" },
-        { "command": "roam.delete", "when": "false" },
-        { "command": "roam.duplicate", "when": "false" },
-        { "command": "roam.copy", "when": "false" },
-        { "command": "roam.cut", "when": "false" },
-        { "command": "roam.paste", "when": "false" },
-        { "command": "roam.compare", "when": "false" },
-        { "command": "roam.runFile", "when": "false" },
-        { "command": "roam.showBookmarkDiskUsage", "when": "false" },
-        { "command": "roam.download", "when": "false" },
-        { "command": "roam.openFolder", "when": "false" },
-        { "command": "roam.openFolderInNewWindow", "when": "false" },
-        { "command": "roam.addToWorkspace", "when": "false" },
-        { "command": "roam.moveBookmarkUp", "when": "false" },
-        { "command": "roam.moveBookmarkDown", "when": "false" },
-        { "command": "roam.moveGroupUp", "when": "false" },
-        { "command": "roam.moveGroupDown", "when": "false" }
+        {
+          "command": "roam.removeBookmark",
+          "when": "false"
+        },
+        {
+          "command": "roam.renameBookmark",
+          "when": "false"
+        },
+        {
+          "command": "roam.moveBookmarkToGroup",
+          "when": "false"
+        },
+        {
+          "command": "roam.renameGroup",
+          "when": "false"
+        },
+        {
+          "command": "roam.deleteGroup",
+          "when": "false"
+        },
+        {
+          "command": "roam.revealInOS",
+          "when": "false"
+        },
+        {
+          "command": "roam.copyPath",
+          "when": "false"
+        },
+        {
+          "command": "roam.openInTerminal",
+          "when": "false"
+        },
+        {
+          "command": "roam.addChildAsBookmark",
+          "when": "false"
+        },
+        {
+          "command": "roam.openFile",
+          "when": "false"
+        },
+        {
+          "command": "roam.newFile",
+          "when": "false"
+        },
+        {
+          "command": "roam.newFolder",
+          "when": "false"
+        },
+        {
+          "command": "roam.rename",
+          "when": "false"
+        },
+        {
+          "command": "roam.delete",
+          "when": "false"
+        },
+        {
+          "command": "roam.duplicate",
+          "when": "false"
+        },
+        {
+          "command": "roam.copy",
+          "when": "false"
+        },
+        {
+          "command": "roam.cut",
+          "when": "false"
+        },
+        {
+          "command": "roam.paste",
+          "when": "false"
+        },
+        {
+          "command": "roam.compare",
+          "when": "false"
+        },
+        {
+          "command": "roam.runFile",
+          "when": "false"
+        },
+        {
+          "command": "roam.showBookmarkDiskUsage",
+          "when": "false"
+        },
+        {
+          "command": "roam.download",
+          "when": "false"
+        },
+        {
+          "command": "roam.openFolder",
+          "when": "false"
+        },
+        {
+          "command": "roam.openFolderInNewWindow",
+          "when": "false"
+        },
+        {
+          "command": "roam.addToWorkspace",
+          "when": "false"
+        },
+        {
+          "command": "roam.moveBookmarkUp",
+          "when": "false"
+        },
+        {
+          "command": "roam.moveBookmarkDown",
+          "when": "false"
+        },
+        {
+          "command": "roam.moveGroupUp",
+          "when": "false"
+        },
+        {
+          "command": "roam.moveGroupDown",
+          "when": "false"
+        }
       ],
       "view/title": [
-        { "command": "roam.addBookmark", "when": "view == roam.tree", "group": "navigation@1" },
-        { "command": "roam.newGroup", "when": "view == roam.tree", "group": "navigation@2" },
-        { "command": "roam.goToPath", "when": "view == roam.tree", "group": "navigation@3" },
-        { "command": "roam.revealActiveEditor", "when": "view == roam.tree", "group": "navigation@1a" },
-        { "command": "roam.setTypeFilter", "when": "view == roam.tree", "group": "navigation@3a" },
-        { "command": "roam.sortBy", "when": "view == roam.tree", "group": "navigation@4" },
-        { "command": "roam.enableShowModified", "when": "view == roam.tree && !roam.showModified", "group": "navigation@5" },
-        { "command": "roam.disableShowModified", "when": "view == roam.tree && roam.showModified", "group": "navigation@5" },
-        { "command": "roam.enableShowSize", "when": "view == roam.tree && !roam.showSize", "group": "navigation@6" },
-        { "command": "roam.disableShowSize", "when": "view == roam.tree && roam.showSize", "group": "navigation@6" },
-        { "command": "roam.enableShowHiddenFiles", "when": "view == roam.tree && !roam.showHiddenFiles", "group": "navigation@7" },
-        { "command": "roam.disableShowHiddenFiles", "when": "view == roam.tree && roam.showHiddenFiles", "group": "navigation@7" },
-        { "command": "roam.refresh", "when": "view == roam.tree", "group": "navigation@8" }
+        {
+          "command": "roam.addBookmark",
+          "when": "view == roam.tree",
+          "group": "navigation@1"
+        },
+        {
+          "command": "roam.newGroup",
+          "when": "view == roam.tree",
+          "group": "navigation@2"
+        },
+        {
+          "command": "roam.goToPath",
+          "when": "view == roam.tree",
+          "group": "navigation@3"
+        },
+        {
+          "command": "roam.revealActiveEditor",
+          "when": "view == roam.tree",
+          "group": "navigation@1a"
+        },
+        {
+          "command": "roam.setTypeFilter",
+          "when": "view == roam.tree",
+          "group": "navigation@3a"
+        },
+        {
+          "command": "roam.sortBy",
+          "when": "view == roam.tree",
+          "group": "navigation@4"
+        },
+        {
+          "command": "roam.enableShowModified",
+          "when": "view == roam.tree && !roam.showModified",
+          "group": "navigation@5"
+        },
+        {
+          "command": "roam.disableShowModified",
+          "when": "view == roam.tree && roam.showModified",
+          "group": "navigation@5"
+        },
+        {
+          "command": "roam.enableShowSize",
+          "when": "view == roam.tree && !roam.showSize",
+          "group": "navigation@6"
+        },
+        {
+          "command": "roam.disableShowSize",
+          "when": "view == roam.tree && roam.showSize",
+          "group": "navigation@6"
+        },
+        {
+          "command": "roam.enableShowHiddenFiles",
+          "when": "view == roam.tree && !roam.showHiddenFiles",
+          "group": "navigation@7"
+        },
+        {
+          "command": "roam.disableShowHiddenFiles",
+          "when": "view == roam.tree && roam.showHiddenFiles",
+          "group": "navigation@7"
+        },
+        {
+          "command": "roam.refresh",
+          "when": "view == roam.tree",
+          "group": "navigation@8"
+        }
       ],
       "view/item/context": [
-        { "command": "roam.searchInBookmark", "when": "view == roam.tree && viewItem == bookmark", "group": "0_search@1" },
-        { "command": "roam.searchInBookmark", "when": "view == roam.tree && viewItem == folder", "group": "0_search@1" },
-        { "command": "roam.runFile", "when": "view == roam.tree && viewItem == file", "group": "0_search@2" },
-        { "command": "roam.runFile", "when": "view == roam.tree && viewItem == recentFile", "group": "0_search@2" },
-        { "command": "roam.compare", "when": "view == roam.tree && (viewItem == file || viewItem == recentFile)", "group": "0_search@3" },
-        { "command": "roam.download", "when": "view == roam.tree && (viewItem == file || viewItem == folder || viewItem == recentFile)", "group": "0_search@4" },
-        { "command": "roam.copy", "when": "view == roam.tree && (viewItem == file || viewItem == folder)", "group": "1a_clip@1" },
-        { "command": "roam.cut", "when": "view == roam.tree && (viewItem == file || viewItem == folder)", "group": "1a_clip@2" },
-        { "command": "roam.paste", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder) && roam.hasClipboard", "group": "1a_clip@3" },
-        { "command": "roam.showBookmarkDiskUsage", "when": "view == roam.tree && viewItem == bookmark", "group": "3_open@3" },
-        { "command": "roam.newFile", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)", "group": "1_create@1" },
-        { "command": "roam.newFolder", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)", "group": "1_create@2" },
-        { "command": "roam.addChildAsBookmark", "when": "view == roam.tree && viewItem == folder", "group": "1_create@3" },
-        { "command": "roam.rename", "when": "view == roam.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@1" },
-        { "command": "roam.duplicate", "when": "view == roam.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@2" },
-        { "command": "roam.delete", "when": "view == roam.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@3" },
-        { "command": "roam.moveBookmarkUp", "when": "view == roam.tree && viewItem == bookmark", "group": "1b_move@1" },
-        { "command": "roam.moveBookmarkDown", "when": "view == roam.tree && viewItem == bookmark", "group": "1b_move@2" },
-        { "command": "roam.moveGroupUp", "when": "view == roam.tree && viewItem == group", "group": "1b_move@1" },
-        { "command": "roam.moveGroupDown", "when": "view == roam.tree && viewItem == group", "group": "1b_move@2" },
-        { "command": "roam.renameBookmark", "when": "view == roam.tree && viewItem == bookmark", "group": "2_modify@1" },
-        { "command": "roam.moveBookmarkToGroup", "when": "view == roam.tree && viewItem == bookmark", "group": "2_modify@2" },
-        { "command": "roam.removeBookmark", "when": "view == roam.tree && viewItem == bookmark", "group": "2_modify@3" },
-        { "command": "roam.renameGroup", "when": "view == roam.tree && viewItem == group", "group": "2_modify@1" },
-        { "command": "roam.deleteGroup", "when": "view == roam.tree && viewItem == group", "group": "2_modify@2" },
-        { "command": "roam.openFolder", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@1" },
-        { "command": "roam.openFolderInNewWindow", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@2" },
-        { "command": "roam.addToWorkspace", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@3" },
-        { "command": "roam.openInTerminal", "when": "view == roam.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "3_open@1" },
-        { "command": "roam.revealInOS", "when": "view == roam.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "3_open@2" },
-        { "command": "roam.copyPath", "when": "view == roam.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "4_copy@1" },
-        { "command": "roam.clearRecent", "when": "view == roam.tree && viewItem == recentSection", "group": "1_modify@1" }
+        {
+          "command": "roam.searchInBookmark",
+          "when": "view == roam.tree && viewItem == bookmark",
+          "group": "0_search@1"
+        },
+        {
+          "command": "roam.searchInBookmark",
+          "when": "view == roam.tree && viewItem == folder",
+          "group": "0_search@1"
+        },
+        {
+          "command": "roam.runFile",
+          "when": "view == roam.tree && viewItem == file",
+          "group": "0_search@2"
+        },
+        {
+          "command": "roam.runFile",
+          "when": "view == roam.tree && viewItem == recentFile",
+          "group": "0_search@2"
+        },
+        {
+          "command": "roam.compare",
+          "when": "view == roam.tree && (viewItem == file || viewItem == recentFile)",
+          "group": "0_search@3"
+        },
+        {
+          "command": "roam.download",
+          "when": "view == roam.tree && (viewItem == file || viewItem == folder || viewItem == recentFile)",
+          "group": "0_search@4"
+        },
+        {
+          "command": "roam.copy",
+          "when": "view == roam.tree && (viewItem == file || viewItem == folder)",
+          "group": "1a_clip@1"
+        },
+        {
+          "command": "roam.cut",
+          "when": "view == roam.tree && (viewItem == file || viewItem == folder)",
+          "group": "1a_clip@2"
+        },
+        {
+          "command": "roam.paste",
+          "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder) && roam.hasClipboard",
+          "group": "1a_clip@3"
+        },
+        {
+          "command": "roam.showBookmarkDiskUsage",
+          "when": "view == roam.tree && viewItem == bookmark",
+          "group": "3_open@3"
+        },
+        {
+          "command": "roam.newFile",
+          "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)",
+          "group": "1_create@1"
+        },
+        {
+          "command": "roam.newFolder",
+          "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)",
+          "group": "1_create@2"
+        },
+        {
+          "command": "roam.addChildAsBookmark",
+          "when": "view == roam.tree && viewItem == folder",
+          "group": "1_create@3"
+        },
+        {
+          "command": "roam.rename",
+          "when": "view == roam.tree && (viewItem == folder || viewItem == file)",
+          "group": "2_modify@1"
+        },
+        {
+          "command": "roam.duplicate",
+          "when": "view == roam.tree && (viewItem == folder || viewItem == file)",
+          "group": "2_modify@2"
+        },
+        {
+          "command": "roam.delete",
+          "when": "view == roam.tree && (viewItem == folder || viewItem == file)",
+          "group": "2_modify@3"
+        },
+        {
+          "command": "roam.moveBookmarkUp",
+          "when": "view == roam.tree && viewItem == bookmark",
+          "group": "1b_move@1"
+        },
+        {
+          "command": "roam.moveBookmarkDown",
+          "when": "view == roam.tree && viewItem == bookmark",
+          "group": "1b_move@2"
+        },
+        {
+          "command": "roam.moveGroupUp",
+          "when": "view == roam.tree && viewItem == group",
+          "group": "1b_move@1"
+        },
+        {
+          "command": "roam.moveGroupDown",
+          "when": "view == roam.tree && viewItem == group",
+          "group": "1b_move@2"
+        },
+        {
+          "command": "roam.renameBookmark",
+          "when": "view == roam.tree && viewItem == bookmark",
+          "group": "2_modify@1"
+        },
+        {
+          "command": "roam.moveBookmarkToGroup",
+          "when": "view == roam.tree && viewItem == bookmark",
+          "group": "2_modify@2"
+        },
+        {
+          "command": "roam.removeBookmark",
+          "when": "view == roam.tree && viewItem == bookmark",
+          "group": "2_modify@3"
+        },
+        {
+          "command": "roam.renameGroup",
+          "when": "view == roam.tree && viewItem == group",
+          "group": "2_modify@1"
+        },
+        {
+          "command": "roam.deleteGroup",
+          "when": "view == roam.tree && viewItem == group",
+          "group": "2_modify@2"
+        },
+        {
+          "command": "roam.openFolder",
+          "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)",
+          "group": "2b_workspace@1"
+        },
+        {
+          "command": "roam.openFolderInNewWindow",
+          "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)",
+          "group": "2b_workspace@2"
+        },
+        {
+          "command": "roam.addToWorkspace",
+          "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)",
+          "group": "2b_workspace@3"
+        },
+        {
+          "command": "roam.openInTerminal",
+          "when": "view == roam.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/",
+          "group": "3_open@1"
+        },
+        {
+          "command": "roam.revealInOS",
+          "when": "view == roam.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/",
+          "group": "3_open@2"
+        },
+        {
+          "command": "roam.copyPath",
+          "when": "view == roam.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/",
+          "group": "4_copy@1"
+        },
+        {
+          "command": "roam.clearRecent",
+          "when": "view == roam.tree && viewItem == recentSection",
+          "group": "1_modify@1"
+        }
       ]
     },
     "configuration": {
@@ -200,13 +692,20 @@
         },
         "roam.sortBy": {
           "type": "string",
-          "enum": ["name", "modified", "size"],
+          "enum": [
+            "name",
+            "modified",
+            "size"
+          ],
           "default": "name",
           "description": "Sort files and folders by this attribute."
         },
         "roam.sortDirection": {
           "type": "string",
-          "enum": ["asc", "desc"],
+          "enum": [
+            "asc",
+            "desc"
+          ],
           "default": "asc",
           "description": "Sort direction. `asc`: A→Z / oldest→newest / smallest→largest. `desc`: reverse."
         },
@@ -240,7 +739,10 @@
         },
         "roam.modifiedFormat": {
           "type": "string",
-          "enum": ["compact", "relative"],
+          "enum": [
+            "compact",
+            "relative"
+          ],
           "enumDescriptions": [
             "Terse: 2h, 3d, Jul 1",
             "Verbose: 2h ago, 3d ago, Jul 1"
@@ -260,6 +762,8 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "package": "vsce package --out roam.vsix"
   },
   "dependencies": {
@@ -268,7 +772,9 @@
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.84.0",
+    "@vitest/runner": "^4.1.9",
     "@vscode/vsce": "^3.2.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.9"
   }
 }

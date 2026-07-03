@@ -10,9 +10,7 @@ import { TypeFilterStore } from './typeFilter';
 import { DiskUsageCache, formatBytes } from './diskUsage';
 import { log } from './logger';
 import { readGitBranchAtPath } from './gitBranch';
-
-export type SortBy = 'name' | 'modified' | 'size';
-export type SortDirection = 'asc' | 'desc';
+import { collapseHome, compareBy, formatRelativeTime, formatSize, SortBy, SortDirection } from './utils';
 
 export type Node =
   | { kind: 'bookmark'; bookmark: Bookmark }
@@ -331,33 +329,6 @@ async function readDir(dirPath: string, bookmarkRoot: string, typeFilter: TypeFi
   });
 }
 
-function compareBy(
-  sortBy: SortBy,
-  direction: SortDirection,
-  a: { name: string; mtime?: number; size?: number },
-  b: { name: string; mtime?: number; size?: number },
-): number {
-  const dir = direction === 'desc' ? -1 : 1;
-  if (sortBy === 'modified') {
-    const am = a.mtime ?? 0;
-    const bm = b.mtime ?? 0;
-    if (am !== bm) {
-      return (am - bm) * dir;
-    }
-    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
-  }
-  if (sortBy === 'size') {
-    const as = a.size ?? 0;
-    const bs = b.size ?? 0;
-    if (as !== bs) {
-      return (as - bs) * dir;
-    }
-    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
-  }
-  // name
-  return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }) * dir;
-}
-
 function tooltipFor(node: { path: string; mtime?: number; size?: number }): vscode.MarkdownString {
   const md = new vscode.MarkdownString();
   md.appendMarkdown(`\`${node.path}\``);
@@ -383,48 +354,6 @@ function descriptionFor(node: { mtime?: number; size?: number; kind: 'file' | 'f
     bits.push(formatSize(node.size));
   }
   return bits.join('  ·  ');
-}
-
-function formatRelativeTime(mtime: number, compact: boolean): string {
-  const now = Date.now();
-  const diffMs = now - mtime;
-  const diffSec = Math.floor(diffMs / 1000);
-  const suffix = compact ? '' : ' ago';
-  if (diffSec < 60) {
-    return compact ? 'now' : 'just now';
-  }
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) {
-    return `${diffMin}m${suffix}`;
-  }
-  const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) {
-    return `${diffH}h${suffix}`;
-  }
-  const diffD = Math.floor(diffH / 24);
-  if (diffD < 7) {
-    return `${diffD}d${suffix}`;
-  }
-  const d = new Date(mtime);
-  const nowD = new Date(now);
-  const sameYear = d.getFullYear() === nowD.getFullYear();
-  const month = d.toLocaleString(undefined, { month: 'short' });
-  const day = d.getDate();
-  return sameYear ? `${month} ${day}` : `${month} ${day} ${d.getFullYear()}`;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  const units = ['KB', 'MB', 'GB', 'TB'];
-  let value = bytes / 1024;
-  let unit = units[0];
-  for (let i = 1; i < units.length && value >= 1024; i++) {
-    value /= 1024;
-    unit = units[i];
-  }
-  return value < 10 ? `${value.toFixed(1)} ${unit}` : `${Math.round(value)} ${unit}`;
 }
 
 function collectFilesExcludePatterns(): string[] {
@@ -456,13 +385,3 @@ function matchesAny(relPath: string, basename: string, patterns: string[]): bool
   return false;
 }
 
-function collapseHome(p: string): string {
-  const home = process.env.HOME;
-  if (home && p.startsWith(home + path.sep)) {
-    return '~' + p.slice(home.length);
-  }
-  if (home && p === home) {
-    return '~';
-  }
-  return p;
-}

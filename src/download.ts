@@ -4,6 +4,7 @@ import * as http from 'http';
 import * as path from 'path';
 import { randomBytes } from 'crypto';
 import { log } from './logger';
+import { encodeRfc5987, formatSize, guessMime } from './utils';
 
 const MAX_INLINE_BYTES = 512 * 1024 * 1024; // 512 MB — no base64 overhead now, we stream bytes.
 const SERVER_TIMEOUT_MS = 5 * 60 * 1000;
@@ -130,44 +131,3 @@ async function showScpFallback(filePath: string, sshHost: string | undefined, re
   }
 }
 
-function guessMime(name: string): string {
-  const ext = path.extname(name).toLowerCase();
-  const table: Record<string, string> = {
-    '.txt': 'text/plain',
-    '.md': 'text/markdown',
-    '.csv': 'text/csv',
-    '.json': 'application/json',
-    '.pdf': 'application/pdf',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.gif': 'image/gif',
-    '.svg': 'image/svg+xml',
-    '.html': 'text/html',
-    '.xml': 'application/xml',
-    '.zip': 'application/zip',
-  };
-  // Force octet-stream for common code/data files so the browser downloads
-  // instead of opening in a tab. The Content-Disposition header should be
-  // authoritative anyway, but browsers occasionally overrule it for text
-  // MIME types.
-  return table[ext] ?? 'application/octet-stream';
-}
-
-function encodeRfc5987(s: string): string {
-  return s.replace(/[^\x20-\x7e]/g, ch => `_${ch.charCodeAt(0).toString(16)}_`);
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  const units = ['KB', 'MB', 'GB'];
-  let v = bytes / 1024;
-  let u = units[0];
-  for (let i = 1; i < units.length && v >= 1024; i++) {
-    v /= 1024;
-    u = units[i];
-  }
-  return v < 10 ? `${v.toFixed(1)} ${u}` : `${Math.round(v)} ${u}`;
-}
