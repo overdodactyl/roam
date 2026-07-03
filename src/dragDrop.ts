@@ -5,7 +5,7 @@ import { BookmarkStore } from './bookmarks';
 import { Node } from './bookmarkProvider';
 import { log } from './logger';
 
-const INTERNAL_MIME = 'application/vnd.code.tree.dilopsfilebrowser.bookmarks';
+const INTERNAL_MIME = 'application/vnd.code.tree.roam.bookmarks';
 const URI_LIST_MIME = 'text/uri-list';
 
 export class BookmarkDragAndDropController implements vscode.TreeDragAndDropController<Node> {

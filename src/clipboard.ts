@@ -29,10 +29,10 @@ export class BrowserClipboard {
   }
 
   private updateContext(): void {
-    vscode.commands.executeCommand('setContext', 'dilopsFileBrowser.hasClipboard', !!this.state);
+    vscode.commands.executeCommand('setContext', 'roam.hasClipboard', !!this.state);
     vscode.commands.executeCommand(
       'setContext',
-      'dilopsFileBrowser.clipboardMode',
+      'roam.clipboardMode',
       this.state?.mode ?? null,
     );
   }

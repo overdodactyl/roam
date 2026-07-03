@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-const RECENT_KEY = 'dilopsFileBrowser.recentFiles';
+const RECENT_KEY = 'roam.recentFiles';
 const MAX_RECENT = 20;
 
 export class RecentFilesStore {

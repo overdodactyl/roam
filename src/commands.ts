@@ -24,7 +24,7 @@ export function registerCommands(
 
   // --- Bookmarks --------------------------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.addBookmark', async () => {
+  sub.push(vscode.commands.registerCommand('roam.addBookmark', async () => {
     const picked = await vscode.window.showOpenDialog({
       canSelectFiles: false,
       canSelectFolders: true,
@@ -38,7 +38,7 @@ export function registerCommands(
     await store.addBookmark(picked[0].fsPath);
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.addBookmarkByPath', async () => {
+  sub.push(vscode.commands.registerCommand('roam.addBookmarkByPath', async () => {
     const input = await vscode.window.showInputBox({
       prompt: 'Absolute path to bookmark',
       placeHolder: '/shares/nfs/dil/development/  or  ~/projects',
@@ -56,7 +56,7 @@ export function registerCommands(
     await store.addBookmark(resolved);
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.removeBookmark', async (node?: Node, selection?: Node[]) => {
+  sub.push(vscode.commands.registerCommand('roam.removeBookmark', async (node?: Node, selection?: Node[]) => {
     const targets = pickBookmarks(node, selection);
     if (targets.length === 0) {
       return;
@@ -76,7 +76,7 @@ export function registerCommands(
     }
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.renameBookmark', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.renameBookmark', async (node?: Node) => {
     if (node?.kind !== 'bookmark') {
       return;
     }
@@ -91,7 +91,7 @@ export function registerCommands(
     await store.renameBookmark(node.bookmark.id, newLabel.trim());
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.moveBookmarkToGroup', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.moveBookmarkToGroup', async (node?: Node) => {
     if (node?.kind !== 'bookmark') {
       return;
     }
@@ -121,20 +121,20 @@ export function registerCommands(
     await store.moveBookmarkToGroup(node.bookmark.id, chosen.groupId);
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.addChildAsBookmark', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.addChildAsBookmark', async (node?: Node) => {
     if (node?.kind !== 'folder') {
       return;
     }
     await store.addBookmark(node.path);
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.moveBookmarkUp', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.moveBookmarkUp', async (node?: Node) => {
     if (node?.kind === 'bookmark') {
       await store.moveBookmark(node.bookmark.id, 'up');
     }
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.moveBookmarkDown', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.moveBookmarkDown', async (node?: Node) => {
     if (node?.kind === 'bookmark') {
       await store.moveBookmark(node.bookmark.id, 'down');
     }
@@ -142,7 +142,7 @@ export function registerCommands(
 
   // --- Groups -----------------------------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.newGroup', async () => {
+  sub.push(vscode.commands.registerCommand('roam.newGroup', async () => {
     const label = await vscode.window.showInputBox({
       prompt: 'Group name',
       placeHolder: 'e.g. Projects',
@@ -154,7 +154,7 @@ export function registerCommands(
     await store.addGroup(label.trim());
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.renameGroup', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.renameGroup', async (node?: Node) => {
     if (node?.kind !== 'group') {
       return;
     }
@@ -169,19 +169,19 @@ export function registerCommands(
     await store.renameGroup(node.group.id, newLabel.trim());
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.moveGroupUp', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.moveGroupUp', async (node?: Node) => {
     if (node?.kind === 'group') {
       await store.moveGroup(node.group.id, 'up');
     }
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.moveGroupDown', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.moveGroupDown', async (node?: Node) => {
     if (node?.kind === 'group') {
       await store.moveGroup(node.group.id, 'down');
     }
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.deleteGroup', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.deleteGroup', async (node?: Node) => {
     if (node?.kind !== 'group') {
       return;
     }
@@ -203,9 +203,9 @@ export function registerCommands(
 
   // --- Tree utility commands --------------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.refresh', () => provider.refresh()));
+  sub.push(vscode.commands.registerCommand('roam.refresh', () => provider.refresh()));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.revealInOS', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.revealInOS', async (node?: Node) => {
     const target = nodePath(node);
     if (!target) {
       return;
@@ -213,7 +213,7 @@ export function registerCommands(
     await vscode.commands.executeCommand('revealFileInOS', vscode.Uri.file(target));
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.copyPath', async (node?: Node, selection?: Node[]) => {
+  sub.push(vscode.commands.registerCommand('roam.copyPath', async (node?: Node, selection?: Node[]) => {
     const paths = normalizeSelection(node, selection)
       .map(nodePath)
       .filter((p): p is string => !!p);
@@ -225,7 +225,7 @@ export function registerCommands(
     vscode.window.setStatusBarMessage(`Copied: ${preview}`, 2000);
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.openInTerminal', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.openInTerminal', async (node?: Node) => {
     const target = nodePath(node);
     if (!target) {
       return;
@@ -239,7 +239,7 @@ export function registerCommands(
 
   // --- File open (records to recent) ------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.openFile', async (filePath: string) => {
+  sub.push(vscode.commands.registerCommand('roam.openFile', async (filePath: string) => {
     if (!filePath) {
       return;
     }
@@ -247,13 +247,13 @@ export function registerCommands(
     await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.clearRecent', async () => {
+  sub.push(vscode.commands.registerCommand('roam.clearRecent', async () => {
     await recent.clear();
   }));
 
   // --- File operations on tree items ------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.newFile', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.newFile', async (node?: Node) => {
     const dir = folderForNewChild(node);
     if (!dir) {
       return;
@@ -272,11 +272,11 @@ export function registerCommands(
       return;
     }
     await vscode.workspace.fs.writeFile(vscode.Uri.file(target), new Uint8Array());
-    await vscode.commands.executeCommand('dilopsFileBrowser.openFile', target);
+    await vscode.commands.executeCommand('roam.openFile', target);
     provider.refresh();
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.newFolder', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.newFolder', async (node?: Node) => {
     const dir = folderForNewChild(node);
     if (!dir) {
       return;
@@ -298,7 +298,7 @@ export function registerCommands(
     provider.refresh();
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.rename', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.rename', async (node?: Node) => {
     const target = nodePath(node);
     if (!target || node?.kind === 'bookmark' || node?.kind === 'group' || node?.kind === 'recent-file') {
       return;
@@ -322,7 +322,7 @@ export function registerCommands(
     provider.refresh();
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.delete', async (node?: Node, selection?: Node[]) => {
+  sub.push(vscode.commands.registerCommand('roam.delete', async (node?: Node, selection?: Node[]) => {
     const targets = normalizeSelection(node, selection)
       .filter(n => n.kind === 'file' || n.kind === 'folder')
       .map(n => (n as { path: string }).path);
@@ -333,7 +333,7 @@ export function registerCommands(
     provider.refresh();
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.duplicate', async (node?: Node, selection?: Node[]) => {
+  sub.push(vscode.commands.registerCommand('roam.duplicate', async (node?: Node, selection?: Node[]) => {
     const targets = normalizeSelection(node, selection)
       .filter(n => n.kind === 'file' || n.kind === 'folder')
       .map(n => (n as { path: string }).path);
@@ -356,7 +356,7 @@ export function registerCommands(
 
   // --- Fuzzy search -----------------------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.searchInBookmark', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.searchInBookmark', async (node?: Node) => {
     let rootPath: string | undefined;
     let rootLabel: string | undefined;
     if (node?.kind === 'bookmark') {
@@ -400,10 +400,10 @@ export function registerCommands(
     );
   };
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.copy', (node?: Node, selection?: Node[]) => copyOrCut('copy', node, selection)));
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.cut', (node?: Node, selection?: Node[]) => copyOrCut('cut', node, selection)));
+  sub.push(vscode.commands.registerCommand('roam.copy', (node?: Node, selection?: Node[]) => copyOrCut('copy', node, selection)));
+  sub.push(vscode.commands.registerCommand('roam.cut', (node?: Node, selection?: Node[]) => copyOrCut('cut', node, selection)));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.paste', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.paste', async (node?: Node) => {
     const state = clipboard.get();
     if (!state) {
       return;
@@ -433,11 +433,11 @@ export function registerCommands(
     provider.refresh();
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.clearClipboard', () => clipboard.clear()));
+  sub.push(vscode.commands.registerCommand('roam.clearClipboard', () => clipboard.clear()));
 
   // --- Reveal active editor file ---------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.revealActiveEditor', async () => {
+  sub.push(vscode.commands.registerCommand('roam.revealActiveEditor', async () => {
     const active = vscode.window.activeTextEditor?.document.uri;
     if (!active || active.scheme !== 'file') {
       vscode.window.showInformationMessage('No file editor is currently active.');
@@ -448,7 +448,7 @@ export function registerCommands(
 
   // --- Compare two files ------------------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.compare', async (node?: Node, selection?: Node[]) => {
+  sub.push(vscode.commands.registerCommand('roam.compare', async (node?: Node, selection?: Node[]) => {
     const paths = normalizeSelection(node, selection)
       .filter(n => n.kind === 'file' || n.kind === 'recent-file')
       .map(n => (n as { path: string }).path);
@@ -483,10 +483,10 @@ export function registerCommands(
     await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(target), { forceNewWindow });
   };
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.openFolder', openFolder(false)));
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.openFolderInNewWindow', openFolder(true)));
+  sub.push(vscode.commands.registerCommand('roam.openFolder', openFolder(false)));
+  sub.push(vscode.commands.registerCommand('roam.openFolderInNewWindow', openFolder(true)));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.addToWorkspace', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.addToWorkspace', async (node?: Node) => {
     const target = nodePath(node);
     if (!target || (node?.kind !== 'bookmark' && node?.kind !== 'folder')) {
       return;
@@ -505,7 +505,7 @@ export function registerCommands(
 
   // --- Download to local machine ---------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.download', async (node?: Node, selection?: Node[]) => {
+  sub.push(vscode.commands.registerCommand('roam.download', async (node?: Node, selection?: Node[]) => {
     const targets = normalizeSelection(node, selection)
       .filter(n => n.kind === 'file' || n.kind === 'folder' || n.kind === 'recent-file')
       .map(n => (n as { path: string }).path);
@@ -520,19 +520,19 @@ export function registerCommands(
 
   // --- Run This File ----------------------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.runFile', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.runFile', async (node?: Node) => {
     if (!node || (node.kind !== 'file' && node.kind !== 'recent-file')) {
       return;
     }
     const filePath = node.kind === 'file' ? node.path : node.path;
     const ext = path.extname(filePath).toLowerCase();
     const runners = vscode.workspace
-      .getConfiguration('dilopsFileBrowser')
+      .getConfiguration('roam')
       .get<Record<string, string>>('runners', {});
     const template = runners[ext];
     if (!template) {
       vscode.window.showInformationMessage(
-        `No runner configured for ${ext || '(no extension)'}. Configure dilopsFileBrowser.runners.`,
+        `No runner configured for ${ext || '(no extension)'}. Configure roam.runners.`,
       );
       return;
     }
@@ -547,12 +547,12 @@ export function registerCommands(
 
   // --- Disk usage -------------------------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.refreshDiskUsage', () => {
+  sub.push(vscode.commands.registerCommand('roam.refreshDiskUsage', () => {
     diskUsage.invalidate();
     vscode.window.setStatusBarMessage('Recomputing bookmark disk usage…', 3000);
   }));
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.showBookmarkDiskUsage', async (node?: Node) => {
+  sub.push(vscode.commands.registerCommand('roam.showBookmarkDiskUsage', async (node?: Node) => {
     if (node?.kind !== 'bookmark') {
       return;
     }
@@ -563,7 +563,7 @@ export function registerCommands(
 
   // --- File-type filter -------------------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.setTypeFilter', async () => {
+  sub.push(vscode.commands.registerCommand('roam.setTypeFilter', async () => {
     type Preset = vscode.QuickPickItem & { exts?: string[]; custom?: boolean; clear?: boolean };
     const current = typeFilter.list();
     const currentLabel = current.length ? `Active: ${current.join(', ')}` : 'None';
@@ -605,9 +605,9 @@ export function registerCommands(
 
   // --- Sort By ----------------------------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.sortBy', async () => {
+  sub.push(vscode.commands.registerCommand('roam.sortBy', async () => {
     type SortChoice = vscode.QuickPickItem & { sortBy: 'name' | 'modified' | 'size'; direction: 'asc' | 'desc' };
-    const config = vscode.workspace.getConfiguration('dilopsFileBrowser');
+    const config = vscode.workspace.getConfiguration('roam');
     const currentBy = config.get<string>('sortBy', 'name');
     const currentDir = config.get<string>('sortDirection', 'asc');
     const mark = (by: string, dir: string): string => (by === currentBy && dir === currentDir ? '$(check) ' : '     ');
@@ -629,9 +629,9 @@ export function registerCommands(
 
   // --- Go To Path -------------------------------------------------------
 
-  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.goToPath', async () => {
+  sub.push(vscode.commands.registerCommand('roam.goToPath', async () => {
     const input = await vscode.window.showInputBox({
-      prompt: 'Reveal path in File Browser',
+      prompt: 'Reveal path in Roam',
       placeHolder: '/shares/nfs/dil/development/… or ~/projects/foo',
       validateInput: v => (v.trim() ? undefined : 'Path is required'),
     });
@@ -928,6 +928,6 @@ async function revealPath(
   }
 
   if (node.kind === 'file') {
-    await vscode.commands.executeCommand('dilopsFileBrowser.openFile', target);
+    await vscode.commands.executeCommand('roam.openFile', target);
   }
 }

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
-const KEY = 'dilopsFileBrowser.typeFilter';
-const CONTEXT = 'dilopsFileBrowser.typeFilterActive';
+const KEY = 'roam.typeFilter';
+const CONTEXT = 'roam.typeFilterActive';
 
 /**
  * Persistent list of file extensions to include (e.g. ['.R', '.qmd']).

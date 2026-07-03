@@ -4,7 +4,7 @@ let channel: vscode.OutputChannel | undefined;
 
 export function initLogger(): vscode.OutputChannel {
   if (!channel) {
-    channel = vscode.window.createOutputChannel('File Browser');
+    channel = vscode.window.createOutputChannel('Roam');
   }
   return channel;
 }

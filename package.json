@@ -1,222 +1,231 @@
 {
-  "name": "dilops-file-browser",
-  "displayName": "File Browser",
-  "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.5.5",
-  "publisher": "dilops",
+  "name": "roam",
+  "displayName": "Roam",
+  "description": "Bookmark and browse any directory on disk — a native sidebar file explorer that isn't confined to the workspace root.",
+  "version": "0.6.0",
+  "publisher": "overdodactyl",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/overdodactyl/roam"
+  },
+  "bugs": {
+    "url": "https://github.com/overdodactyl/roam/issues"
+  },
+  "keywords": ["file browser", "bookmarks", "explorer", "remote ssh", "positron"],
   "engines": {
     "vscode": "^1.84.0"
   },
   "categories": ["Other"],
   "activationEvents": [
-    "onView:dilopsFileBrowser.tree"
+    "onView:roam.tree"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "dilopsFileBrowser",
-          "title": "File Browser",
+          "id": "roam",
+          "title": "Roam",
           "icon": "$(folder-library)"
         }
       ]
     },
     "views": {
-      "dilopsFileBrowser": [
+      "roam": [
         {
-          "id": "dilopsFileBrowser.tree",
+          "id": "roam.tree",
           "name": "Bookmarks",
           "icon": "$(folder-library)",
-          "contextualTitle": "File Browser"
+          "contextualTitle": "Roam"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "dilopsFileBrowser.tree",
-        "contents": "No bookmarks yet.\n[Add Bookmark](command:dilopsFileBrowser.addBookmark)\n[New Group](command:dilopsFileBrowser.newGroup)\nPin any directory on disk — your home, a shares path, anywhere. Contents load lazily and files open with a single click."
+        "view": "roam.tree",
+        "contents": "No bookmarks yet.\n[Add Bookmark](command:roam.addBookmark)\n[New Group](command:roam.newGroup)\nPin any directory on disk — your home, a shares path, anywhere. Contents load lazily and files open with a single click."
       }
     ],
     "commands": [
-      { "command": "dilopsFileBrowser.addBookmark", "title": "Add Bookmark…", "category": "File Browser", "icon": "$(add)" },
-      { "command": "dilopsFileBrowser.addBookmarkByPath", "title": "Add Bookmark by Path…", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.removeBookmark", "title": "Remove Bookmark", "category": "File Browser", "icon": "$(remove)" },
-      { "command": "dilopsFileBrowser.renameBookmark", "title": "Rename Bookmark…", "category": "File Browser", "icon": "$(edit)" },
-      { "command": "dilopsFileBrowser.moveBookmarkToGroup", "title": "Move to Group…", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.newGroup", "title": "New Group…", "category": "File Browser", "icon": "$(new-folder)" },
-      { "command": "dilopsFileBrowser.renameGroup", "title": "Rename Group…", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.deleteGroup", "title": "Delete Group…", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.refresh", "title": "Refresh", "category": "File Browser", "icon": "$(refresh)" },
-      { "command": "dilopsFileBrowser.enableShowHiddenFiles", "title": "Show Hidden Files", "category": "File Browser", "icon": "$(eye)" },
-      { "command": "dilopsFileBrowser.disableShowHiddenFiles", "title": "Hide Hidden Files", "category": "File Browser", "icon": "$(eye-closed)" },
-      { "command": "dilopsFileBrowser.revealInOS", "title": "Reveal in OS File Manager", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.copyPath", "title": "Copy Path", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.openInTerminal", "title": "Open in Integrated Terminal", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.addChildAsBookmark", "title": "Bookmark This Folder", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.openFile", "title": "Open File", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.clearRecent", "title": "Clear Recent Files", "category": "File Browser", "icon": "$(clear-all)" },
-      { "command": "dilopsFileBrowser.newFile", "title": "New File…", "category": "File Browser", "icon": "$(new-file)" },
-      { "command": "dilopsFileBrowser.newFolder", "title": "New Folder…", "category": "File Browser", "icon": "$(new-folder)" },
-      { "command": "dilopsFileBrowser.rename", "title": "Rename…", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.delete", "title": "Delete (Move to Trash)", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.duplicate", "title": "Duplicate", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.searchInBookmark", "title": "Search Files…", "category": "File Browser", "icon": "$(search)" },
-      { "command": "dilopsFileBrowser.goToPath", "title": "Go To Path…", "category": "File Browser", "icon": "$(go-to-file)" },
-      { "command": "dilopsFileBrowser.sortBy", "title": "Sort By…", "category": "File Browser", "icon": "$(sort-precedence)" },
-      { "command": "dilopsFileBrowser.enableShowModified", "title": "Show Modified Dates", "category": "File Browser", "icon": "$(calendar)" },
-      { "command": "dilopsFileBrowser.disableShowModified", "title": "Hide Modified Dates", "category": "File Browser", "icon": "$(calendar)" },
-      { "command": "dilopsFileBrowser.enableShowSize", "title": "Show File Sizes", "category": "File Browser", "icon": "$(symbol-numeric)" },
-      { "command": "dilopsFileBrowser.disableShowSize", "title": "Hide File Sizes", "category": "File Browser", "icon": "$(symbol-numeric)" },
-      { "command": "dilopsFileBrowser.copy", "title": "Copy", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.cut", "title": "Cut", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.paste", "title": "Paste", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.clearClipboard", "title": "Clear Clipboard", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.revealActiveEditor", "title": "Reveal Active Editor File", "category": "File Browser", "icon": "$(target)" },
-      { "command": "dilopsFileBrowser.compare", "title": "Compare Files", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.setTypeFilter", "title": "Filter by File Type…", "category": "File Browser", "icon": "$(filter)" },
-      { "command": "dilopsFileBrowser.runFile", "title": "Run File", "category": "File Browser", "icon": "$(play)" },
-      { "command": "dilopsFileBrowser.refreshDiskUsage", "title": "Refresh Disk Usage (all bookmarks)", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "title": "Compute Disk Usage", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.showLog", "title": "Show Log", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.download", "title": "Download to My Computer…", "category": "File Browser", "icon": "$(cloud-download)" },
-      { "command": "dilopsFileBrowser.openFolder", "title": "Open Folder", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.openFolderInNewWindow", "title": "Open Folder in New Window", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.addToWorkspace", "title": "Add Folder to Workspace", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.moveBookmarkUp", "title": "Move Up", "category": "File Browser", "icon": "$(arrow-up)" },
-      { "command": "dilopsFileBrowser.moveBookmarkDown", "title": "Move Down", "category": "File Browser", "icon": "$(arrow-down)" },
-      { "command": "dilopsFileBrowser.moveGroupUp", "title": "Move Group Up", "category": "File Browser", "icon": "$(arrow-up)" },
-      { "command": "dilopsFileBrowser.moveGroupDown", "title": "Move Group Down", "category": "File Browser", "icon": "$(arrow-down)" }
+      { "command": "roam.addBookmark", "title": "Add Bookmark…", "category": "Roam", "icon": "$(add)" },
+      { "command": "roam.addBookmarkByPath", "title": "Add Bookmark by Path…", "category": "Roam" },
+      { "command": "roam.removeBookmark", "title": "Remove Bookmark", "category": "Roam", "icon": "$(remove)" },
+      { "command": "roam.renameBookmark", "title": "Rename Bookmark…", "category": "Roam", "icon": "$(edit)" },
+      { "command": "roam.moveBookmarkToGroup", "title": "Move to Group…", "category": "Roam" },
+      { "command": "roam.newGroup", "title": "New Group…", "category": "Roam", "icon": "$(new-folder)" },
+      { "command": "roam.renameGroup", "title": "Rename Group…", "category": "Roam" },
+      { "command": "roam.deleteGroup", "title": "Delete Group…", "category": "Roam" },
+      { "command": "roam.refresh", "title": "Refresh", "category": "Roam", "icon": "$(refresh)" },
+      { "command": "roam.enableShowHiddenFiles", "title": "Show Hidden Files", "category": "Roam", "icon": "$(eye)" },
+      { "command": "roam.disableShowHiddenFiles", "title": "Hide Hidden Files", "category": "Roam", "icon": "$(eye-closed)" },
+      { "command": "roam.revealInOS", "title": "Reveal in OS File Manager", "category": "Roam" },
+      { "command": "roam.copyPath", "title": "Copy Path", "category": "Roam" },
+      { "command": "roam.openInTerminal", "title": "Open in Integrated Terminal", "category": "Roam" },
+      { "command": "roam.addChildAsBookmark", "title": "Bookmark This Folder", "category": "Roam" },
+      { "command": "roam.openFile", "title": "Open File", "category": "Roam" },
+      { "command": "roam.clearRecent", "title": "Clear Recent Files", "category": "Roam", "icon": "$(clear-all)" },
+      { "command": "roam.newFile", "title": "New File…", "category": "Roam", "icon": "$(new-file)" },
+      { "command": "roam.newFolder", "title": "New Folder…", "category": "Roam", "icon": "$(new-folder)" },
+      { "command": "roam.rename", "title": "Rename…", "category": "Roam" },
+      { "command": "roam.delete", "title": "Delete (Move to Trash)", "category": "Roam" },
+      { "command": "roam.duplicate", "title": "Duplicate", "category": "Roam" },
+      { "command": "roam.searchInBookmark", "title": "Search Files…", "category": "Roam", "icon": "$(search)" },
+      { "command": "roam.goToPath", "title": "Go To Path…", "category": "Roam", "icon": "$(go-to-file)" },
+      { "command": "roam.sortBy", "title": "Sort By…", "category": "Roam", "icon": "$(sort-precedence)" },
+      { "command": "roam.enableShowModified", "title": "Show Modified Dates", "category": "Roam", "icon": "$(calendar)" },
+      { "command": "roam.disableShowModified", "title": "Hide Modified Dates", "category": "Roam", "icon": "$(calendar)" },
+      { "command": "roam.enableShowSize", "title": "Show File Sizes", "category": "Roam", "icon": "$(symbol-numeric)" },
+      { "command": "roam.disableShowSize", "title": "Hide File Sizes", "category": "Roam", "icon": "$(symbol-numeric)" },
+      { "command": "roam.copy", "title": "Copy", "category": "Roam" },
+      { "command": "roam.cut", "title": "Cut", "category": "Roam" },
+      { "command": "roam.paste", "title": "Paste", "category": "Roam" },
+      { "command": "roam.clearClipboard", "title": "Clear Clipboard", "category": "Roam" },
+      { "command": "roam.revealActiveEditor", "title": "Reveal Active Editor File", "category": "Roam", "icon": "$(target)" },
+      { "command": "roam.compare", "title": "Compare Files", "category": "Roam" },
+      { "command": "roam.setTypeFilter", "title": "Filter by File Type…", "category": "Roam", "icon": "$(filter)" },
+      { "command": "roam.runFile", "title": "Run File", "category": "Roam", "icon": "$(play)" },
+      { "command": "roam.refreshDiskUsage", "title": "Refresh Disk Usage (all bookmarks)", "category": "Roam" },
+      { "command": "roam.showBookmarkDiskUsage", "title": "Compute Disk Usage", "category": "Roam" },
+      { "command": "roam.showLog", "title": "Show Log", "category": "Roam" },
+      { "command": "roam.download", "title": "Download to My Computer…", "category": "Roam", "icon": "$(cloud-download)" },
+      { "command": "roam.openFolder", "title": "Open Folder", "category": "Roam" },
+      { "command": "roam.openFolderInNewWindow", "title": "Open Folder in New Window", "category": "Roam" },
+      { "command": "roam.addToWorkspace", "title": "Add Folder to Workspace", "category": "Roam" },
+      { "command": "roam.moveBookmarkUp", "title": "Move Up", "category": "Roam", "icon": "$(arrow-up)" },
+      { "command": "roam.moveBookmarkDown", "title": "Move Down", "category": "Roam", "icon": "$(arrow-down)" },
+      { "command": "roam.moveGroupUp", "title": "Move Group Up", "category": "Roam", "icon": "$(arrow-up)" },
+      { "command": "roam.moveGroupDown", "title": "Move Group Down", "category": "Roam", "icon": "$(arrow-down)" }
     ],
     "menus": {
       "commandPalette": [
-        { "command": "dilopsFileBrowser.removeBookmark", "when": "false" },
-        { "command": "dilopsFileBrowser.renameBookmark", "when": "false" },
-        { "command": "dilopsFileBrowser.moveBookmarkToGroup", "when": "false" },
-        { "command": "dilopsFileBrowser.renameGroup", "when": "false" },
-        { "command": "dilopsFileBrowser.deleteGroup", "when": "false" },
-        { "command": "dilopsFileBrowser.revealInOS", "when": "false" },
-        { "command": "dilopsFileBrowser.copyPath", "when": "false" },
-        { "command": "dilopsFileBrowser.openInTerminal", "when": "false" },
-        { "command": "dilopsFileBrowser.addChildAsBookmark", "when": "false" },
-        { "command": "dilopsFileBrowser.openFile", "when": "false" },
-        { "command": "dilopsFileBrowser.newFile", "when": "false" },
-        { "command": "dilopsFileBrowser.newFolder", "when": "false" },
-        { "command": "dilopsFileBrowser.rename", "when": "false" },
-        { "command": "dilopsFileBrowser.delete", "when": "false" },
-        { "command": "dilopsFileBrowser.duplicate", "when": "false" },
-        { "command": "dilopsFileBrowser.copy", "when": "false" },
-        { "command": "dilopsFileBrowser.cut", "when": "false" },
-        { "command": "dilopsFileBrowser.paste", "when": "false" },
-        { "command": "dilopsFileBrowser.compare", "when": "false" },
-        { "command": "dilopsFileBrowser.runFile", "when": "false" },
-        { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "when": "false" },
-        { "command": "dilopsFileBrowser.download", "when": "false" },
-        { "command": "dilopsFileBrowser.openFolder", "when": "false" },
-        { "command": "dilopsFileBrowser.openFolderInNewWindow", "when": "false" },
-        { "command": "dilopsFileBrowser.addToWorkspace", "when": "false" },
-        { "command": "dilopsFileBrowser.moveBookmarkUp", "when": "false" },
-        { "command": "dilopsFileBrowser.moveBookmarkDown", "when": "false" },
-        { "command": "dilopsFileBrowser.moveGroupUp", "when": "false" },
-        { "command": "dilopsFileBrowser.moveGroupDown", "when": "false" }
+        { "command": "roam.removeBookmark", "when": "false" },
+        { "command": "roam.renameBookmark", "when": "false" },
+        { "command": "roam.moveBookmarkToGroup", "when": "false" },
+        { "command": "roam.renameGroup", "when": "false" },
+        { "command": "roam.deleteGroup", "when": "false" },
+        { "command": "roam.revealInOS", "when": "false" },
+        { "command": "roam.copyPath", "when": "false" },
+        { "command": "roam.openInTerminal", "when": "false" },
+        { "command": "roam.addChildAsBookmark", "when": "false" },
+        { "command": "roam.openFile", "when": "false" },
+        { "command": "roam.newFile", "when": "false" },
+        { "command": "roam.newFolder", "when": "false" },
+        { "command": "roam.rename", "when": "false" },
+        { "command": "roam.delete", "when": "false" },
+        { "command": "roam.duplicate", "when": "false" },
+        { "command": "roam.copy", "when": "false" },
+        { "command": "roam.cut", "when": "false" },
+        { "command": "roam.paste", "when": "false" },
+        { "command": "roam.compare", "when": "false" },
+        { "command": "roam.runFile", "when": "false" },
+        { "command": "roam.showBookmarkDiskUsage", "when": "false" },
+        { "command": "roam.download", "when": "false" },
+        { "command": "roam.openFolder", "when": "false" },
+        { "command": "roam.openFolderInNewWindow", "when": "false" },
+        { "command": "roam.addToWorkspace", "when": "false" },
+        { "command": "roam.moveBookmarkUp", "when": "false" },
+        { "command": "roam.moveBookmarkDown", "when": "false" },
+        { "command": "roam.moveGroupUp", "when": "false" },
+        { "command": "roam.moveGroupDown", "when": "false" }
       ],
       "view/title": [
-        { "command": "dilopsFileBrowser.addBookmark", "when": "view == dilopsFileBrowser.tree", "group": "navigation@1" },
-        { "command": "dilopsFileBrowser.newGroup", "when": "view == dilopsFileBrowser.tree", "group": "navigation@2" },
-        { "command": "dilopsFileBrowser.goToPath", "when": "view == dilopsFileBrowser.tree", "group": "navigation@3" },
-        { "command": "dilopsFileBrowser.revealActiveEditor", "when": "view == dilopsFileBrowser.tree", "group": "navigation@1a" },
-        { "command": "dilopsFileBrowser.setTypeFilter", "when": "view == dilopsFileBrowser.tree", "group": "navigation@3a" },
-        { "command": "dilopsFileBrowser.sortBy", "when": "view == dilopsFileBrowser.tree", "group": "navigation@4" },
-        { "command": "dilopsFileBrowser.enableShowModified", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showModified", "group": "navigation@5" },
-        { "command": "dilopsFileBrowser.disableShowModified", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showModified", "group": "navigation@5" },
-        { "command": "dilopsFileBrowser.enableShowSize", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showSize", "group": "navigation@6" },
-        { "command": "dilopsFileBrowser.disableShowSize", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showSize", "group": "navigation@6" },
-        { "command": "dilopsFileBrowser.enableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showHiddenFiles", "group": "navigation@7" },
-        { "command": "dilopsFileBrowser.disableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showHiddenFiles", "group": "navigation@7" },
-        { "command": "dilopsFileBrowser.refresh", "when": "view == dilopsFileBrowser.tree", "group": "navigation@8" }
+        { "command": "roam.addBookmark", "when": "view == roam.tree", "group": "navigation@1" },
+        { "command": "roam.newGroup", "when": "view == roam.tree", "group": "navigation@2" },
+        { "command": "roam.goToPath", "when": "view == roam.tree", "group": "navigation@3" },
+        { "command": "roam.revealActiveEditor", "when": "view == roam.tree", "group": "navigation@1a" },
+        { "command": "roam.setTypeFilter", "when": "view == roam.tree", "group": "navigation@3a" },
+        { "command": "roam.sortBy", "when": "view == roam.tree", "group": "navigation@4" },
+        { "command": "roam.enableShowModified", "when": "view == roam.tree && !roam.showModified", "group": "navigation@5" },
+        { "command": "roam.disableShowModified", "when": "view == roam.tree && roam.showModified", "group": "navigation@5" },
+        { "command": "roam.enableShowSize", "when": "view == roam.tree && !roam.showSize", "group": "navigation@6" },
+        { "command": "roam.disableShowSize", "when": "view == roam.tree && roam.showSize", "group": "navigation@6" },
+        { "command": "roam.enableShowHiddenFiles", "when": "view == roam.tree && !roam.showHiddenFiles", "group": "navigation@7" },
+        { "command": "roam.disableShowHiddenFiles", "when": "view == roam.tree && roam.showHiddenFiles", "group": "navigation@7" },
+        { "command": "roam.refresh", "when": "view == roam.tree", "group": "navigation@8" }
       ],
       "view/item/context": [
-        { "command": "dilopsFileBrowser.searchInBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "0_search@1" },
-        { "command": "dilopsFileBrowser.searchInBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == folder", "group": "0_search@1" },
-        { "command": "dilopsFileBrowser.runFile", "when": "view == dilopsFileBrowser.tree && viewItem == file", "group": "0_search@2" },
-        { "command": "dilopsFileBrowser.runFile", "when": "view == dilopsFileBrowser.tree && viewItem == recentFile", "group": "0_search@2" },
-        { "command": "dilopsFileBrowser.compare", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == recentFile)", "group": "0_search@3" },
-        { "command": "dilopsFileBrowser.download", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == folder || viewItem == recentFile)", "group": "0_search@4" },
-        { "command": "dilopsFileBrowser.copy", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == folder)", "group": "1a_clip@1" },
-        { "command": "dilopsFileBrowser.cut", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == folder)", "group": "1a_clip@2" },
-        { "command": "dilopsFileBrowser.paste", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder) && dilopsFileBrowser.hasClipboard", "group": "1a_clip@3" },
-        { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "3_open@3" },
-        { "command": "dilopsFileBrowser.newFile", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "1_create@1" },
-        { "command": "dilopsFileBrowser.newFolder", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "1_create@2" },
-        { "command": "dilopsFileBrowser.addChildAsBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == folder", "group": "1_create@3" },
-        { "command": "dilopsFileBrowser.rename", "when": "view == dilopsFileBrowser.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@1" },
-        { "command": "dilopsFileBrowser.duplicate", "when": "view == dilopsFileBrowser.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@2" },
-        { "command": "dilopsFileBrowser.delete", "when": "view == dilopsFileBrowser.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@3" },
-        { "command": "dilopsFileBrowser.moveBookmarkUp", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "1b_move@1" },
-        { "command": "dilopsFileBrowser.moveBookmarkDown", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "1b_move@2" },
-        { "command": "dilopsFileBrowser.moveGroupUp", "when": "view == dilopsFileBrowser.tree && viewItem == group", "group": "1b_move@1" },
-        { "command": "dilopsFileBrowser.moveGroupDown", "when": "view == dilopsFileBrowser.tree && viewItem == group", "group": "1b_move@2" },
-        { "command": "dilopsFileBrowser.renameBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "2_modify@1" },
-        { "command": "dilopsFileBrowser.moveBookmarkToGroup", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "2_modify@2" },
-        { "command": "dilopsFileBrowser.removeBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "2_modify@3" },
-        { "command": "dilopsFileBrowser.renameGroup", "when": "view == dilopsFileBrowser.tree && viewItem == group", "group": "2_modify@1" },
-        { "command": "dilopsFileBrowser.deleteGroup", "when": "view == dilopsFileBrowser.tree && viewItem == group", "group": "2_modify@2" },
-        { "command": "dilopsFileBrowser.openFolder", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@1" },
-        { "command": "dilopsFileBrowser.openFolderInNewWindow", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@2" },
-        { "command": "dilopsFileBrowser.addToWorkspace", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@3" },
-        { "command": "dilopsFileBrowser.openInTerminal", "when": "view == dilopsFileBrowser.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "3_open@1" },
-        { "command": "dilopsFileBrowser.revealInOS", "when": "view == dilopsFileBrowser.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "3_open@2" },
-        { "command": "dilopsFileBrowser.copyPath", "when": "view == dilopsFileBrowser.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "4_copy@1" },
-        { "command": "dilopsFileBrowser.clearRecent", "when": "view == dilopsFileBrowser.tree && viewItem == recentSection", "group": "1_modify@1" }
+        { "command": "roam.searchInBookmark", "when": "view == roam.tree && viewItem == bookmark", "group": "0_search@1" },
+        { "command": "roam.searchInBookmark", "when": "view == roam.tree && viewItem == folder", "group": "0_search@1" },
+        { "command": "roam.runFile", "when": "view == roam.tree && viewItem == file", "group": "0_search@2" },
+        { "command": "roam.runFile", "when": "view == roam.tree && viewItem == recentFile", "group": "0_search@2" },
+        { "command": "roam.compare", "when": "view == roam.tree && (viewItem == file || viewItem == recentFile)", "group": "0_search@3" },
+        { "command": "roam.download", "when": "view == roam.tree && (viewItem == file || viewItem == folder || viewItem == recentFile)", "group": "0_search@4" },
+        { "command": "roam.copy", "when": "view == roam.tree && (viewItem == file || viewItem == folder)", "group": "1a_clip@1" },
+        { "command": "roam.cut", "when": "view == roam.tree && (viewItem == file || viewItem == folder)", "group": "1a_clip@2" },
+        { "command": "roam.paste", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder) && roam.hasClipboard", "group": "1a_clip@3" },
+        { "command": "roam.showBookmarkDiskUsage", "when": "view == roam.tree && viewItem == bookmark", "group": "3_open@3" },
+        { "command": "roam.newFile", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)", "group": "1_create@1" },
+        { "command": "roam.newFolder", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)", "group": "1_create@2" },
+        { "command": "roam.addChildAsBookmark", "when": "view == roam.tree && viewItem == folder", "group": "1_create@3" },
+        { "command": "roam.rename", "when": "view == roam.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@1" },
+        { "command": "roam.duplicate", "when": "view == roam.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@2" },
+        { "command": "roam.delete", "when": "view == roam.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@3" },
+        { "command": "roam.moveBookmarkUp", "when": "view == roam.tree && viewItem == bookmark", "group": "1b_move@1" },
+        { "command": "roam.moveBookmarkDown", "when": "view == roam.tree && viewItem == bookmark", "group": "1b_move@2" },
+        { "command": "roam.moveGroupUp", "when": "view == roam.tree && viewItem == group", "group": "1b_move@1" },
+        { "command": "roam.moveGroupDown", "when": "view == roam.tree && viewItem == group", "group": "1b_move@2" },
+        { "command": "roam.renameBookmark", "when": "view == roam.tree && viewItem == bookmark", "group": "2_modify@1" },
+        { "command": "roam.moveBookmarkToGroup", "when": "view == roam.tree && viewItem == bookmark", "group": "2_modify@2" },
+        { "command": "roam.removeBookmark", "when": "view == roam.tree && viewItem == bookmark", "group": "2_modify@3" },
+        { "command": "roam.renameGroup", "when": "view == roam.tree && viewItem == group", "group": "2_modify@1" },
+        { "command": "roam.deleteGroup", "when": "view == roam.tree && viewItem == group", "group": "2_modify@2" },
+        { "command": "roam.openFolder", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@1" },
+        { "command": "roam.openFolderInNewWindow", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@2" },
+        { "command": "roam.addToWorkspace", "when": "view == roam.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@3" },
+        { "command": "roam.openInTerminal", "when": "view == roam.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "3_open@1" },
+        { "command": "roam.revealInOS", "when": "view == roam.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "3_open@2" },
+        { "command": "roam.copyPath", "when": "view == roam.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "4_copy@1" },
+        { "command": "roam.clearRecent", "when": "view == roam.tree && viewItem == recentSection", "group": "1_modify@1" }
       ]
     },
     "configuration": {
-      "title": "File Browser",
+      "title": "Roam",
       "properties": {
-        "dilopsFileBrowser.showHiddenFiles": {
+        "roam.showHiddenFiles": {
           "type": "boolean",
           "default": false,
           "description": "Show files and folders that start with a dot."
         },
-        "dilopsFileBrowser.foldersFirst": {
+        "roam.foldersFirst": {
           "type": "boolean",
           "default": true,
           "description": "Sort folders before files within each directory."
         },
-        "dilopsFileBrowser.respectFilesExclude": {
+        "roam.respectFilesExclude": {
           "type": "boolean",
           "default": true,
           "description": "Honor the workspace `files.exclude` glob patterns (e.g. hide node_modules, .git). Patterns are matched against paths relative to each bookmark root."
         },
-        "dilopsFileBrowser.sortBy": {
+        "roam.sortBy": {
           "type": "string",
           "enum": ["name", "modified", "size"],
           "default": "name",
           "description": "Sort files and folders by this attribute."
         },
-        "dilopsFileBrowser.sortDirection": {
+        "roam.sortDirection": {
           "type": "string",
           "enum": ["asc", "desc"],
           "default": "asc",
           "description": "Sort direction. `asc`: A→Z / oldest→newest / smallest→largest. `desc`: reverse."
         },
-        "dilopsFileBrowser.showModified": {
+        "roam.showModified": {
           "type": "boolean",
           "default": true,
           "description": "Show relative modification time next to each file and folder."
         },
-        "dilopsFileBrowser.watchPollingIntervalMs": {
+        "roam.watchPollingIntervalMs": {
           "type": "number",
           "default": 3000,
           "minimum": 500,
           "description": "How often (ms) to poll expanded directories for external changes. Needed because inotify (fs.watch) is unreliable over NFS. Lower = snappier, higher = fewer NFS round-trips."
         },
-        "dilopsFileBrowser.showBookmarkDiskUsage": {
+        "roam.showBookmarkDiskUsage": {
           "type": "boolean",
           "default": false,
           "description": "Show total disk usage next to each bookmark. Computed asynchronously via `du -sb` and cached for 5 minutes."
         },
-        "dilopsFileBrowser.runners": {
+        "roam.runners": {
           "type": "object",
           "default": {
             ".R": "Rscript ${file}",
@@ -228,7 +237,7 @@
           },
           "description": "Command templates for the Run File command, keyed by file extension. `${file}` is replaced with the (shell-quoted) file path. Commands run in a new terminal cd'd to the file's directory."
         },
-        "dilopsFileBrowser.modifiedFormat": {
+        "roam.modifiedFormat": {
           "type": "string",
           "enum": ["compact", "relative"],
           "enumDescriptions": [
@@ -238,7 +247,7 @@
           "default": "compact",
           "description": "Format for modification times shown in the tree."
         },
-        "dilopsFileBrowser.showSize": {
+        "roam.showSize": {
           "type": "boolean",
           "default": false,
           "description": "Show file size (e.g. `4.2 KB`) next to each file."
@@ -250,7 +259,7 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "package": "vsce package --out dilops-file-browser.vsix"
+    "package": "vsce package --out roam.vsix"
   },
   "dependencies": {
     "minimatch": "^10.0.1"

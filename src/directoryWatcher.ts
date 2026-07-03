@@ -137,7 +137,7 @@ export class DirectoryWatcher implements vscode.Disposable {
 
 function pollingInterval(): number {
   const configured = vscode.workspace
-    .getConfiguration('dilopsFileBrowser')
+    .getConfiguration('roam')
     .get<number>('watchPollingIntervalMs', DEFAULT_POLL_MS);
   if (!Number.isFinite(configured) || configured < 500) {
     return DEFAULT_POLL_MS;

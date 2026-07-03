@@ -11,7 +11,7 @@ interface SearchResult {
 }
 
 export async function searchBookmark(rootPath: string, rootLabel: string): Promise<void> {
-  const config = vscode.workspace.getConfiguration('dilopsFileBrowser');
+  const config = vscode.workspace.getConfiguration('roam');
   const showHidden = config.get<boolean>('showHiddenFiles', false);
   const respectExclude = config.get<boolean>('respectFilesExclude', true);
   const excludePatterns = respectExclude ? collectExcludePatterns() : [];

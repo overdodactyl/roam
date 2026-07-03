@@ -15,8 +15,8 @@ export interface Group {
   order?: number;
 }
 
-const BOOKMARKS_KEY = 'dilopsFileBrowser.bookmarks';
-const GROUPS_KEY = 'dilopsFileBrowser.groups';
+const BOOKMARKS_KEY = 'roam.bookmarks';
+const GROUPS_KEY = 'roam.groups';
 
 export class BookmarkStore {
   private readonly _onDidChange = new vscode.EventEmitter<void>();

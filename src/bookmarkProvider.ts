@@ -83,7 +83,7 @@ export class BookmarkProvider implements vscode.TreeDataProvider<Node> {
       const item = new vscode.TreeItem('Recent', vscode.TreeItemCollapsibleState.Expanded);
       item.iconPath = new vscode.ThemeIcon('history');
       item.contextValue = 'recentSection';
-      item.tooltip = 'Files recently opened through File Browser';
+      item.tooltip = 'Files recently opened through Roam';
       return item;
     }
 
@@ -208,7 +208,7 @@ function idFor(node: Node): string {
 
 function openFileCommand(fsPath: string): vscode.Command {
   return {
-    command: 'dilopsFileBrowser.openFile',
+    command: 'roam.openFile',
     title: 'Open',
     arguments: [fsPath],
   };
@@ -226,7 +226,7 @@ function bookmarkDescription(
     bits.push(branch);
   }
   const showDiskUsage = vscode.workspace
-    .getConfiguration('dilopsFileBrowser')
+    .getConfiguration('roam')
     .get<boolean>('showBookmarkDiskUsage', false);
   if (showDiskUsage) {
     const size = diskUsage.peek(bookmarkPath);
@@ -238,7 +238,7 @@ function bookmarkDescription(
 }
 
 async function readDir(dirPath: string, bookmarkRoot: string, typeFilter: TypeFilterStore): Promise<Node[]> {
-  const browserConfig = vscode.workspace.getConfiguration('dilopsFileBrowser');
+  const browserConfig = vscode.workspace.getConfiguration('roam');
   const showHidden = browserConfig.get<boolean>('showHiddenFiles', false);
   const foldersFirst = browserConfig.get<boolean>('foldersFirst', true);
   const respectExclude = browserConfig.get<boolean>('respectFilesExclude', true);
@@ -371,7 +371,7 @@ function tooltipFor(node: { path: string; mtime?: number; size?: number }): vsco
 }
 
 function descriptionFor(node: { mtime?: number; size?: number; kind: 'file' | 'folder' }): string {
-  const cfg = vscode.workspace.getConfiguration('dilopsFileBrowser');
+  const cfg = vscode.workspace.getConfiguration('roam');
   const showModified = cfg.get<boolean>('showModified', true);
   const showSize = cfg.get<boolean>('showSize', false);
   const compact = cfg.get<string>('modifiedFormat', 'compact') === 'compact';
