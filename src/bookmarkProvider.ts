@@ -5,6 +5,9 @@ import * as path from 'path';
 import { minimatch } from 'minimatch';
 import { Bookmark, BookmarkStore, Group } from './bookmarks';
 import { RecentFilesStore } from './recentFiles';
+import { GitLookup } from './gitDecorations';
+import { TypeFilterStore } from './typeFilter';
+import { DiskUsageCache, formatBytes } from './diskUsage';
 
 export type SortBy = 'name' | 'modified' | 'size';
 export type SortDirection = 'asc' | 'desc';
@@ -25,13 +28,54 @@ export class BookmarkProvider implements vscode.TreeDataProvider<Node> {
   constructor(
     private readonly store: BookmarkStore,
     private readonly recent: RecentFilesStore,
+    private readonly typeFilter: TypeFilterStore,
+    private readonly diskUsage: DiskUsageCache,
+    private readonly gitLookup?: GitLookup,
   ) {
     store.onDidChange(() => this._onDidChangeTreeData.fire(undefined));
     recent.onDidChange(() => this._onDidChangeTreeData.fire(undefined));
+    typeFilter.onDidChange(() => this._onDidChangeTreeData.fire(undefined));
+    gitLookup?.onDidChangeBranch(() => this._onDidChangeTreeData.fire(undefined));
+    diskUsage.onDidUpdate(dir => {
+      // A du result came back — refresh the matching bookmark so description updates.
+      const bookmark = this.store.listBookmarks().find(b => b.path === dir);
+      if (bookmark) {
+        this._onDidChangeTreeData.fire({ kind: 'bookmark', bookmark });
+      } else if (!dir) {
+        this._onDidChangeTreeData.fire(undefined);
+      }
+    });
   }
 
   refresh(node?: Node): void {
     this._onDidChangeTreeData.fire(node);
+  }
+
+  /**
+   * Refresh a specific directory path if it corresponds to any node currently
+   * visible. Used by DirectoryWatcher.
+   */
+  refreshPath(dirPath: string): void {
+    const bookmark = this.store.listBookmarks().find(b => b.path === dirPath);
+    if (bookmark) {
+      this._onDidChangeTreeData.fire({ kind: 'bookmark', bookmark });
+      return;
+    }
+    const owner = this.store
+      .listBookmarks()
+      .filter(b => dirPath.startsWith(b.path + path.sep))
+      .sort((a, b) => b.path.length - a.path.length)[0];
+    if (owner) {
+      this._onDidChangeTreeData.fire({
+        kind: 'folder',
+        path: dirPath,
+        label: path.basename(dirPath),
+        bookmarkRoot: owner.path,
+      });
+      return;
+    }
+    // Fallback: whole tree.
+    this._onDidChangeTreeData.fire(undefined);
   }
 
   getTreeItem(node: Node): vscode.TreeItem {
@@ -71,7 +115,7 @@ export class BookmarkProvider implements vscode.TreeDataProvider<Node> {
       const item = new vscode.TreeItem(node.bookmark.label, vscode.TreeItemCollapsibleState.Collapsed);
       item.resourceUri = vscode.Uri.file(node.bookmark.path);
       item.tooltip = node.bookmark.path;
-      item.description = collapseHome(node.bookmark.path);
+      item.description = bookmarkDescription(node.bookmark.path, this.gitLookup, this.diskUsage);
       item.contextValue = 'bookmark';
       item.iconPath = new vscode.ThemeIcon('bookmark');
       return item;
@@ -125,7 +169,7 @@ export class BookmarkProvider implements vscode.TreeDataProvider<Node> {
 
     const dirPath = node.kind === 'bookmark' ? node.bookmark.path : node.path;
     const bookmarkRoot = node.kind === 'bookmark' ? node.bookmark.path : node.bookmarkRoot;
-    return readDir(dirPath, bookmarkRoot);
+    return readDir(dirPath, bookmarkRoot, this.typeFilter);
   }
 
   getParent(node: Node): Node | undefined {
@@ -158,7 +202,29 @@ function openFileCommand(fsPath: string): vscode.Command {
   };
 }
 
-async function readDir(dirPath: string, bookmarkRoot: string): Promise<Node[]> {
+function bookmarkDescription(
+  bookmarkPath: string,
+  gitLookup: GitLookup | undefined,
+  diskUsage: DiskUsageCache,
+): string {
+  const bits = [collapseHome(bookmarkPath)];
+  const branch = gitLookup?.getBranch(bookmarkPath);
+  if (branch) {
+    bits.push(branch);
+  }
+  const showDiskUsage = vscode.workspace
+    .getConfiguration('dilopsFileBrowser')
+    .get<boolean>('showBookmarkDiskUsage', false);
+  if (showDiskUsage) {
+    const size = diskUsage.peek(bookmarkPath);
+    if (size !== undefined) {
+      bits.push(formatBytes(size));
+    }
+  }
+  return bits.join('  ·  ');
+}
+
+async function readDir(dirPath: string, bookmarkRoot: string, typeFilter: TypeFilterStore): Promise<Node[]> {
   const browserConfig = vscode.workspace.getConfiguration('dilopsFileBrowser');
   const showHidden = browserConfig.get<boolean>('showHiddenFiles', false);
   const foldersFirst = browserConfig.get<boolean>('foldersFirst', true);
@@ -186,7 +252,9 @@ async function readDir(dirPath: string, bookmarkRoot: string): Promise<Node[]> {
     return [{ kind: 'error', message: `Cannot read: ${message}`, parentPath: dirPath }];
   }
 
-  // Pre-filter names before we spend the stat syscalls.
+  // Pre-filter names before we spend the stat syscalls. The type filter
+  // applies only to non-directory entries, so a user filtering for ".R" still
+  // sees subfolders (otherwise the tree would be unnavigable).
   const filtered = raw.filter(e => {
     if (e.name === '.snapshot') {
       return false;
@@ -199,6 +267,9 @@ async function readDir(dirPath: string, bookmarkRoot: string): Promise<Node[]> {
       if (matchesAny(rel, e.name, excludePatterns)) {
         return false;
       }
+    }
+    if (!e.isDirectory() && !e.isSymbolicLink() && !typeFilter.matches(e.name)) {
+      return false;
     }
     return true;
   });

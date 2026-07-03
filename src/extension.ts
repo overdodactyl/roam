@@ -6,6 +6,11 @@ import { RecentFilesStore } from './recentFiles';
 import { registerCommands } from './commands';
 import { BookmarkDragAndDropController } from './dragDrop';
 import { GitDecorationProvider } from './gitDecorations';
+import { BrowserClipboard } from './clipboard';
+import { ProjectDecorationProvider } from './projectDecorations';
+import { DirectoryWatcher } from './directoryWatcher';
+import { TypeFilterStore } from './typeFilter';
+import { DiskUsageCache } from './diskUsage';
 
 const SEEDED_KEY = 'dilopsFileBrowser.defaultsSeeded';
 const SHOW_HIDDEN_CONTEXT = 'dilopsFileBrowser.showHiddenFiles';
@@ -18,7 +23,11 @@ const SHOW_SIZE_SETTING = 'showSize';
 export function activate(context: vscode.ExtensionContext): void {
   const store = new BookmarkStore(context);
   const recent = new RecentFilesStore(context);
-  const provider = new BookmarkProvider(store, recent);
+  const typeFilter = new TypeFilterStore(context);
+  const diskUsage = new DiskUsageCache();
+  const gitDecorations = new GitDecorationProvider();
+  const projectDecorations = new ProjectDecorationProvider();
+  const provider = new BookmarkProvider(store, recent, typeFilter, diskUsage, gitDecorations);
   const dragDrop = new BookmarkDragAndDropController(store);
 
   const treeView = vscode.window.createTreeView('dilopsFileBrowser.tree', {
@@ -29,13 +38,47 @@ export function activate(context: vscode.ExtensionContext): void {
   });
   context.subscriptions.push(treeView);
 
-  const decorations = new GitDecorationProvider();
   context.subscriptions.push(
-    vscode.window.registerFileDecorationProvider(decorations),
-    decorations,
+    vscode.window.registerFileDecorationProvider(gitDecorations),
+    vscode.window.registerFileDecorationProvider(projectDecorations),
+    gitDecorations,
   );
 
-  registerCommands(context, store, recent, provider, treeView);
+  const clipboard = new BrowserClipboard();
+
+  // Live refresh: watch directories the user has expanded, teardown on collapse.
+  const watcher = new DirectoryWatcher(dir => provider.refreshPath(dir));
+  context.subscriptions.push(watcher);
+  const watchPathFor = (node: unknown): string | undefined => {
+    const n = node as { kind?: string; path?: string; bookmark?: { path: string } } | undefined;
+    if (!n) {
+      return undefined;
+    }
+    if (n.kind === 'bookmark' && n.bookmark) {
+      return n.bookmark.path;
+    }
+    if (n.kind === 'folder' && n.path) {
+      return n.path;
+    }
+    return undefined;
+  };
+  context.subscriptions.push(
+    treeView.onDidExpandElement(e => {
+      const p = watchPathFor(e.element);
+      if (p) {
+        watcher.watch(p);
+      }
+    }),
+    treeView.onDidCollapseElement(e => {
+      const p = watchPathFor(e.element);
+      if (p) {
+        watcher.unwatch(p);
+      }
+    }),
+  );
+
+  context.subscriptions.push(diskUsage);
+  registerCommands(context, store, recent, provider, treeView, clipboard, typeFilter, diskUsage);
   registerHiddenFilesToggle(context);
   registerShowModifiedToggle(context);
   registerShowSizeToggle(context);

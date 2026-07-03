@@ -2,7 +2,7 @@
   "name": "dilops-file-browser",
   "displayName": "File Browser",
   "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "publisher": "dilops",
   "engines": {
     "vscode": "^1.84.0"
@@ -67,7 +67,17 @@
       { "command": "dilopsFileBrowser.enableShowModified", "title": "Show Modified Dates", "category": "File Browser", "icon": "$(calendar)" },
       { "command": "dilopsFileBrowser.disableShowModified", "title": "Hide Modified Dates", "category": "File Browser", "icon": "$(calendar)" },
       { "command": "dilopsFileBrowser.enableShowSize", "title": "Show File Sizes", "category": "File Browser", "icon": "$(symbol-numeric)" },
-      { "command": "dilopsFileBrowser.disableShowSize", "title": "Hide File Sizes", "category": "File Browser", "icon": "$(symbol-numeric)" }
+      { "command": "dilopsFileBrowser.disableShowSize", "title": "Hide File Sizes", "category": "File Browser", "icon": "$(symbol-numeric)" },
+      { "command": "dilopsFileBrowser.copy", "title": "Copy", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.cut", "title": "Cut", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.paste", "title": "Paste", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.clearClipboard", "title": "Clear Clipboard", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.revealActiveEditor", "title": "Reveal Active Editor File", "category": "File Browser", "icon": "$(target)" },
+      { "command": "dilopsFileBrowser.compare", "title": "Compare Files", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.setTypeFilter", "title": "Filter by File Type…", "category": "File Browser", "icon": "$(filter)" },
+      { "command": "dilopsFileBrowser.runFile", "title": "Run File", "category": "File Browser", "icon": "$(play)" },
+      { "command": "dilopsFileBrowser.refreshDiskUsage", "title": "Refresh Disk Usage (all bookmarks)", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "title": "Compute Disk Usage", "category": "File Browser" }
     ],
     "menus": {
       "commandPalette": [
@@ -85,12 +95,20 @@
         { "command": "dilopsFileBrowser.newFolder", "when": "false" },
         { "command": "dilopsFileBrowser.rename", "when": "false" },
         { "command": "dilopsFileBrowser.delete", "when": "false" },
-        { "command": "dilopsFileBrowser.duplicate", "when": "false" }
+        { "command": "dilopsFileBrowser.duplicate", "when": "false" },
+        { "command": "dilopsFileBrowser.copy", "when": "false" },
+        { "command": "dilopsFileBrowser.cut", "when": "false" },
+        { "command": "dilopsFileBrowser.paste", "when": "false" },
+        { "command": "dilopsFileBrowser.compare", "when": "false" },
+        { "command": "dilopsFileBrowser.runFile", "when": "false" },
+        { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "when": "false" }
       ],
       "view/title": [
         { "command": "dilopsFileBrowser.addBookmark", "when": "view == dilopsFileBrowser.tree", "group": "navigation@1" },
         { "command": "dilopsFileBrowser.newGroup", "when": "view == dilopsFileBrowser.tree", "group": "navigation@2" },
         { "command": "dilopsFileBrowser.goToPath", "when": "view == dilopsFileBrowser.tree", "group": "navigation@3" },
+        { "command": "dilopsFileBrowser.revealActiveEditor", "when": "view == dilopsFileBrowser.tree", "group": "navigation@1a" },
+        { "command": "dilopsFileBrowser.setTypeFilter", "when": "view == dilopsFileBrowser.tree", "group": "navigation@3a" },
         { "command": "dilopsFileBrowser.sortBy", "when": "view == dilopsFileBrowser.tree", "group": "navigation@4" },
         { "command": "dilopsFileBrowser.enableShowModified", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showModified", "group": "navigation@5" },
         { "command": "dilopsFileBrowser.disableShowModified", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showModified", "group": "navigation@5" },
@@ -103,6 +121,13 @@
       "view/item/context": [
         { "command": "dilopsFileBrowser.searchInBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "0_search@1" },
         { "command": "dilopsFileBrowser.searchInBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == folder", "group": "0_search@1" },
+        { "command": "dilopsFileBrowser.runFile", "when": "view == dilopsFileBrowser.tree && viewItem == file", "group": "0_search@2" },
+        { "command": "dilopsFileBrowser.runFile", "when": "view == dilopsFileBrowser.tree && viewItem == recentFile", "group": "0_search@2" },
+        { "command": "dilopsFileBrowser.compare", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == recentFile)", "group": "0_search@3" },
+        { "command": "dilopsFileBrowser.copy", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == folder)", "group": "1a_clip@1" },
+        { "command": "dilopsFileBrowser.cut", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == folder)", "group": "1a_clip@2" },
+        { "command": "dilopsFileBrowser.paste", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder) && dilopsFileBrowser.hasClipboard", "group": "1a_clip@3" },
+        { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "3_open@3" },
         { "command": "dilopsFileBrowser.newFile", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "1_create@1" },
         { "command": "dilopsFileBrowser.newFolder", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "1_create@2" },
         { "command": "dilopsFileBrowser.addChildAsBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == folder", "group": "1_create@3" },
@@ -154,6 +179,23 @@
           "type": "boolean",
           "default": true,
           "description": "Show relative modification time next to each file and folder."
+        },
+        "dilopsFileBrowser.showBookmarkDiskUsage": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show total disk usage next to each bookmark. Computed asynchronously via `du -sb` and cached for 5 minutes."
+        },
+        "dilopsFileBrowser.runners": {
+          "type": "object",
+          "default": {
+            ".R": "Rscript ${file}",
+            ".Rmd": "R -e \"rmarkdown::render('${file}')\"",
+            ".py": "python ${file}",
+            ".sh": "bash ${file}",
+            ".bash": "bash ${file}",
+            ".qmd": "quarto render ${file}"
+          },
+          "description": "Command templates for the Run File command, keyed by file extension. `${file}` is replaced with the (shell-quoted) file path. Commands run in a new terminal cd'd to the file's directory."
         },
         "dilopsFileBrowser.modifiedFormat": {
           "type": "string",

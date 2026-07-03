@@ -5,6 +5,9 @@ import { BookmarkStore } from './bookmarks';
 import { BookmarkProvider, Node } from './bookmarkProvider';
 import { RecentFilesStore } from './recentFiles';
 import { searchBookmark } from './search';
+import { BrowserClipboard, ClipboardMode } from './clipboard';
+import { TypeFilterStore, parseExtensionList } from './typeFilter';
+import { DiskUsageCache } from './diskUsage';
 
 export function registerCommands(
   context: vscode.ExtensionContext,
@@ -12,6 +15,9 @@ export function registerCommands(
   recent: RecentFilesStore,
   provider: BookmarkProvider,
   treeView: vscode.TreeView<Node>,
+  clipboard: BrowserClipboard,
+  typeFilter: TypeFilterStore,
+  diskUsage: DiskUsageCache,
 ): void {
   const sub = context.subscriptions;
 
@@ -353,6 +359,180 @@ export function registerCommands(
     await searchBookmark(rootPath, rootLabel);
   }));
 
+  // --- Clipboard (cross-directory copy/cut/paste) -----------------------
+
+  const copyOrCut = async (mode: ClipboardMode, node?: Node, selection?: Node[]): Promise<void> => {
+    const paths = normalizeSelection(node, selection)
+      .filter(n => n.kind === 'file' || n.kind === 'folder')
+      .map(n => (n as { path: string }).path);
+    if (paths.length === 0) {
+      return;
+    }
+    clipboard.set(mode, paths);
+    vscode.window.setStatusBarMessage(
+      `${mode === 'copy' ? 'Copied' : 'Cut'}: ${paths.length === 1 ? collapseHome(paths[0]) : `${paths.length} items`}`,
+      2000,
+    );
+  };
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.copy', (node?: Node, selection?: Node[]) => copyOrCut('copy', node, selection)));
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.cut', (node?: Node, selection?: Node[]) => copyOrCut('cut', node, selection)));
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.paste', async (node?: Node) => {
+    const state = clipboard.get();
+    if (!state) {
+      return;
+    }
+    const dest = folderForNewChild(node);
+    if (!dest) {
+      vscode.window.showErrorMessage('Choose a folder or bookmark as the paste destination.');
+      return;
+    }
+    let pasted = 0;
+    for (const src of state.paths) {
+      try {
+        const destPath = await uniqueDestPath(dest, path.basename(src));
+        if (state.mode === 'copy') {
+          await vscode.workspace.fs.copy(vscode.Uri.file(src), vscode.Uri.file(destPath), { overwrite: false });
+        } else {
+          await vscode.workspace.fs.rename(vscode.Uri.file(src), vscode.Uri.file(destPath), { overwrite: false });
+        }
+        pasted++;
+      } catch (err) {
+        vscode.window.showErrorMessage(`Failed to paste ${src}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+    if (state.mode === 'cut' && pasted === state.paths.length) {
+      clipboard.clear();
+    }
+    provider.refresh();
+  }));
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.clearClipboard', () => clipboard.clear()));
+
+  // --- Reveal active editor file ---------------------------------------
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.revealActiveEditor', async () => {
+    const active = vscode.window.activeTextEditor?.document.uri;
+    if (!active || active.scheme !== 'file') {
+      vscode.window.showInformationMessage('No file editor is currently active.');
+      return;
+    }
+    await revealPath(store, provider, treeView, active.fsPath);
+  }));
+
+  // --- Compare two files ------------------------------------------------
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.compare', async (node?: Node, selection?: Node[]) => {
+    const paths = normalizeSelection(node, selection)
+      .filter(n => n.kind === 'file' || n.kind === 'recent-file')
+      .map(n => (n as { path: string }).path);
+    if (paths.length === 2) {
+      await vscode.commands.executeCommand('vscode.diff', vscode.Uri.file(paths[0]), vscode.Uri.file(paths[1]), `${path.basename(paths[0])} ↔ ${path.basename(paths[1])}`);
+      return;
+    }
+    if (paths.length === 1) {
+      const other = await vscode.window.showOpenDialog({
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        openLabel: `Compare with ${path.basename(paths[0])}`,
+        title: 'Choose second file to compare',
+      });
+      if (!other || other.length === 0) {
+        return;
+      }
+      await vscode.commands.executeCommand('vscode.diff', vscode.Uri.file(paths[0]), other[0], `${path.basename(paths[0])} ↔ ${path.basename(other[0].fsPath)}`);
+      return;
+    }
+    vscode.window.showInformationMessage('Select 1 or 2 files to compare.');
+  }));
+
+  // --- Run This File ----------------------------------------------------
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.runFile', async (node?: Node) => {
+    if (!node || (node.kind !== 'file' && node.kind !== 'recent-file')) {
+      return;
+    }
+    const filePath = node.kind === 'file' ? node.path : node.path;
+    const ext = path.extname(filePath).toLowerCase();
+    const runners = vscode.workspace
+      .getConfiguration('dilopsFileBrowser')
+      .get<Record<string, string>>('runners', {});
+    const template = runners[ext];
+    if (!template) {
+      vscode.window.showInformationMessage(
+        `No runner configured for ${ext || '(no extension)'}. Configure dilopsFileBrowser.runners.`,
+      );
+      return;
+    }
+    const command = template.replace(/\$\{file\}/g, shellQuote(filePath));
+    const terminal = vscode.window.createTerminal({
+      name: `Run ${path.basename(filePath)}`,
+      cwd: path.dirname(filePath),
+    });
+    terminal.show();
+    terminal.sendText(command);
+  }));
+
+  // --- Disk usage -------------------------------------------------------
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.refreshDiskUsage', () => {
+    diskUsage.invalidate();
+    vscode.window.setStatusBarMessage('Recomputing bookmark disk usage…', 3000);
+  }));
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.showBookmarkDiskUsage', async (node?: Node) => {
+    if (node?.kind !== 'bookmark') {
+      return;
+    }
+    diskUsage.invalidate(node.bookmark.path);
+    diskUsage.peek(node.bookmark.path);
+    vscode.window.setStatusBarMessage(`Computing disk usage for ${node.bookmark.label}…`, 3000);
+  }));
+
+  // --- File-type filter -------------------------------------------------
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.setTypeFilter', async () => {
+    type Preset = vscode.QuickPickItem & { exts?: string[]; custom?: boolean; clear?: boolean };
+    const current = typeFilter.list();
+    const currentLabel = current.length ? `Active: ${current.join(', ')}` : 'None';
+    const presets: Preset[] = [
+      { label: '$(clear-all) Clear filter', description: 'Show all files', clear: true },
+      { label: 'R files', description: '.R, .Rmd, .qmd', exts: ['.R', '.Rmd', '.qmd'] },
+      { label: 'Python files', description: '.py, .pyi, .ipynb', exts: ['.py', '.pyi', '.ipynb'] },
+      { label: 'Shell scripts', description: '.sh, .bash', exts: ['.sh', '.bash'] },
+      { label: 'Markdown / docs', description: '.md, .qmd, .Rmd, .txt', exts: ['.md', '.qmd', '.Rmd', '.txt'] },
+      { label: 'Data files', description: '.csv, .tsv, .parquet, .rds, .feather', exts: ['.csv', '.tsv', '.parquet', '.rds', '.feather'] },
+      { label: '$(edit) Custom…', description: 'Enter your own list', custom: true },
+    ];
+    const picked = await vscode.window.showQuickPick(presets, {
+      placeHolder: `File-type filter — ${currentLabel}`,
+    });
+    if (!picked) {
+      return;
+    }
+    if (picked.clear) {
+      await typeFilter.set([]);
+      return;
+    }
+    if (picked.custom) {
+      const input = await vscode.window.showInputBox({
+        prompt: 'Extensions to show (comma or space-separated). Leading dot optional.',
+        placeHolder: '.R, .qmd, py',
+        value: current.join(', '),
+      });
+      if (input === undefined) {
+        return;
+      }
+      await typeFilter.set(parseExtensionList(input));
+      return;
+    }
+    if (picked.exts) {
+      await typeFilter.set(picked.exts);
+    }
+  }));
+
   // --- Sort By ----------------------------------------------------------
 
   sub.push(vscode.commands.registerCommand('dilopsFileBrowser.sortBy', async () => {
@@ -559,6 +739,22 @@ async function isDirectory(p: string): Promise<boolean> {
   }
 }
 
+async function uniqueDestPath(destDir: string, name: string): Promise<string> {
+  let candidate = path.join(destDir, name);
+  if (!(await pathExists(candidate))) {
+    return candidate;
+  }
+  const ext = path.extname(name);
+  const stem = ext ? name.slice(0, -ext.length) : name;
+  for (let i = 1; i < 1000; i++) {
+    candidate = path.join(destDir, `${stem} (${i})${ext}`);
+    if (!(await pathExists(candidate))) {
+      return candidate;
+    }
+  }
+  throw new Error(`Cannot find a unique name for ${name} in ${destDir}`);
+}
+
 async function deriveDuplicatePath(source: string): Promise<string | undefined> {
   const dir = path.dirname(source);
   const base = path.basename(source);
@@ -571,6 +767,11 @@ async function deriveDuplicatePath(source: string): Promise<string | undefined> 
     }
   }
   return undefined;
+}
+
+function shellQuote(p: string): string {
+  // Basic POSIX-shell single-quote escaping. Safe for use in a sendText line.
+  return `'${p.replace(/'/g, `'\\''`)}'`;
 }
 
 function expandHome(input: string): string {

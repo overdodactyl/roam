@@ -12,9 +12,19 @@ interface GitRepository {
     workingTreeChanges: Array<{ uri: vscode.Uri; status: number }>;
     indexChanges: Array<{ uri: vscode.Uri; status: number }>;
     untrackedChanges?: Array<{ uri: vscode.Uri; status: number }>;
+    HEAD?: { name?: string; commit?: string };
     onDidChange: vscode.Event<void>;
   };
   rootUri: vscode.Uri;
+}
+
+/**
+ * Lookup helpers so other providers (e.g. bookmark labels) can consult
+ * git state without going through the decoration provider directly.
+ */
+export interface GitLookup {
+  getBranch(fsPath: string): string | undefined;
+  onDidChangeBranch: vscode.Event<void>;
 }
 
 const STATUS_INDEX_MODIFIED = 0;
@@ -25,9 +35,12 @@ const STATUS_DELETED = 6;
 const STATUS_UNTRACKED = 7;
 const STATUS_IGNORED = 8;
 
-export class GitDecorationProvider implements vscode.FileDecorationProvider, vscode.Disposable {
+export class GitDecorationProvider implements vscode.FileDecorationProvider, vscode.Disposable, GitLookup {
   private readonly _onDidChange = new vscode.EventEmitter<vscode.Uri[] | undefined>();
   readonly onDidChangeFileDecorations = this._onDidChange.event;
+
+  private readonly _onDidChangeBranch = new vscode.EventEmitter<void>();
+  readonly onDidChangeBranch = this._onDidChangeBranch.event;
 
   private gitApi: GitApi | undefined;
   private readonly disposables: vscode.Disposable[] = [];
@@ -62,7 +75,10 @@ export class GitDecorationProvider implements vscode.FileDecorationProvider, vsc
     if (!this.gitApi) {
       return;
     }
-    const notifyAll = (): void => this._onDidChange.fire(undefined);
+    const notifyAll = (): void => {
+      this._onDidChange.fire(undefined);
+      this._onDidChangeBranch.fire();
+    };
     for (const repo of this.gitApi.repositories) {
       this.disposables.push(repo.state.onDidChange(notifyAll));
     }
@@ -72,6 +88,14 @@ export class GitDecorationProvider implements vscode.FileDecorationProvider, vsc
     }));
     this.disposables.push(this.gitApi.onDidCloseRepository(() => notifyAll()));
     notifyAll();
+  }
+
+  getBranch(fsPath: string): string | undefined {
+    if (!this.gitApi) {
+      return undefined;
+    }
+    const repo = this.gitApi.getRepository(vscode.Uri.file(fsPath));
+    return repo?.state.HEAD?.name;
   }
 
   provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
