@@ -165,7 +165,10 @@ async function readDir(dirPath: string, bookmarkRoot: string): Promise<Node[]> {
   const respectExclude = browserConfig.get<boolean>('respectFilesExclude', true);
   const sortBy = browserConfig.get<SortBy>('sortBy', 'name');
   const sortDirection = browserConfig.get<SortDirection>('sortDirection', 'asc');
+  const showModified = browserConfig.get<boolean>('showModified', true);
+  const showSize = browserConfig.get<boolean>('showSize', false);
   const excludePatterns = respectExclude ? collectFilesExcludePatterns() : [];
+  const needStats = showModified || showSize || sortBy === 'modified' || sortBy === 'size';
 
   interface RawEntry {
     name: string;
@@ -205,15 +208,24 @@ async function readDir(dirPath: string, bookmarkRoot: string): Promise<Node[]> {
     let isDir = e.isDirectory();
     let mtime: number | undefined;
     let size: number | undefined;
-    try {
-      // Follow symlinks for isDir determination and for mtime/size display.
-      const stat = await fs.stat(fullPath);
-      isDir = stat.isDirectory();
-      mtime = stat.mtimeMs;
-      size = stat.size;
-    } catch {
-      // stat may fail on broken symlinks or ACL-restricted paths; fall back to dirent flags.
-      if (e.isSymbolicLink()) {
+
+    if (needStats) {
+      try {
+        // Full stat: follows symlinks and gives us mtime/size for display + sort.
+        const stat = await fs.stat(fullPath);
+        isDir = stat.isDirectory();
+        mtime = stat.mtimeMs;
+        size = stat.size;
+      } catch {
+        if (e.isSymbolicLink()) {
+          isDir = false;
+        }
+      }
+    } else if (e.isSymbolicLink()) {
+      // Fast path: only stat symlinks (typically a minority) to know if they resolve to a dir.
+      try {
+        isDir = (await fs.stat(fullPath)).isDirectory();
+      } catch {
         isDir = false;
       }
     }
