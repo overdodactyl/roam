@@ -11,6 +11,7 @@ import { ProjectDecorationProvider } from './projectDecorations';
 import { DirectoryWatcher } from './directoryWatcher';
 import { TypeFilterStore } from './typeFilter';
 import { DiskUsageCache } from './diskUsage';
+import { initLogger, log, showLog } from './logger';
 
 const SEEDED_KEY = 'dilopsFileBrowser.defaultsSeeded';
 const SHOW_HIDDEN_CONTEXT = 'dilopsFileBrowser.showHiddenFiles';
@@ -21,6 +22,10 @@ const SHOW_SIZE_CONTEXT = 'dilopsFileBrowser.showSize';
 const SHOW_SIZE_SETTING = 'showSize';
 
 export function activate(context: vscode.ExtensionContext): void {
+  const outputChannel = initLogger();
+  context.subscriptions.push(outputChannel);
+  log('extension activated');
+
   const store = new BookmarkStore(context);
   const recent = new RecentFilesStore(context);
   const typeFilter = new TypeFilterStore(context);
@@ -46,9 +51,38 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const clipboard = new BrowserClipboard();
 
-  // Live refresh: watch directories the user has expanded, teardown on collapse.
+  // Live refresh has two sources:
+  //   1) Every bookmark path is watched unconditionally — expansion state can be
+  //      restored by VS Code across window reloads without firing onDidExpand,
+  //      so we can't rely on the expand event to seed initial watches.
+  //   2) Subfolders the user expands are watched additionally.
+  // On bookmark removal / collapse we only unwatch if the path isn't still
+  // claimed by the other source.
   const watcher = new DirectoryWatcher(dir => provider.refreshPath(dir));
   context.subscriptions.push(watcher);
+  const bookmarkWatched = new Set<string>();
+  const expandedWatched = new Set<string>();
+
+  const syncBookmarkWatches = (): void => {
+    const nextPaths = new Set(store.listBookmarks().map(b => b.path));
+    for (const p of bookmarkWatched) {
+      if (!nextPaths.has(p)) {
+        bookmarkWatched.delete(p);
+        if (!expandedWatched.has(p)) {
+          watcher.unwatch(p);
+        }
+      }
+    }
+    for (const p of nextPaths) {
+      if (!bookmarkWatched.has(p)) {
+        bookmarkWatched.add(p);
+        watcher.watch(p);
+      }
+    }
+  };
+  syncBookmarkWatches();
+  context.subscriptions.push(store.onDidChange(syncBookmarkWatches));
+
   const watchPathFor = (node: unknown): string | undefined => {
     const n = node as { kind?: string; path?: string; bookmark?: { path: string } } | undefined;
     if (!n) {
@@ -65,16 +99,24 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     treeView.onDidExpandElement(e => {
       const p = watchPathFor(e.element);
-      if (p) {
+      if (p && !expandedWatched.has(p)) {
+        expandedWatched.add(p);
         watcher.watch(p);
       }
     }),
     treeView.onDidCollapseElement(e => {
       const p = watchPathFor(e.element);
-      if (p) {
-        watcher.unwatch(p);
+      if (p && expandedWatched.has(p)) {
+        expandedWatched.delete(p);
+        if (!bookmarkWatched.has(p)) {
+          watcher.unwatch(p);
+        }
       }
     }),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('dilopsFileBrowser.showLog', () => showLog()),
   );
 
   context.subscriptions.push(diskUsage);

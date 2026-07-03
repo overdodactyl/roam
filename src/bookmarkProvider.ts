@@ -8,6 +8,7 @@ import { RecentFilesStore } from './recentFiles';
 import { GitLookup } from './gitDecorations';
 import { TypeFilterStore } from './typeFilter';
 import { DiskUsageCache, formatBytes } from './diskUsage';
+import { log } from './logger';
 
 export type SortBy = 'name' | 'modified' | 'size';
 export type SortDirection = 'asc' | 'desc';
@@ -56,29 +57,20 @@ export class BookmarkProvider implements vscode.TreeDataProvider<Node> {
    * visible. Used by DirectoryWatcher.
    */
   refreshPath(dirPath: string): void {
-    const bookmark = this.store.listBookmarks().find(b => b.path === dirPath);
-    if (bookmark) {
-      this._onDidChangeTreeData.fire({ kind: 'bookmark', bookmark });
-      return;
-    }
-    const owner = this.store
-      .listBookmarks()
-      .filter(b => dirPath.startsWith(b.path + path.sep))
-      .sort((a, b) => b.path.length - a.path.length)[0];
-    if (owner) {
-      this._onDidChangeTreeData.fire({
-        kind: 'folder',
-        path: dirPath,
-        label: path.basename(dirPath),
-        bookmarkRoot: owner.path,
-      });
-      return;
-    }
-    // Fallback: whole tree.
+    // Fire the whole tree — VS Code re-requests children only for currently
+    // visible / expanded elements, so this is not as expensive as it looks and
+    // sidesteps identity issues with reconstructed folder nodes.
+    log(`refreshPath fired for ${dirPath}`);
     this._onDidChangeTreeData.fire(undefined);
   }
 
   getTreeItem(node: Node): vscode.TreeItem {
+    const item = this.buildTreeItem(node);
+    item.id = idFor(node);
+    return item;
+  }
+
+  private buildTreeItem(node: Node): vscode.TreeItem {
     if (node.kind === 'error') {
       const item = new vscode.TreeItem(node.message, vscode.TreeItemCollapsibleState.None);
       item.iconPath = new vscode.ThemeIcon('warning');
@@ -191,6 +183,25 @@ export class BookmarkProvider implements vscode.TreeDataProvider<Node> {
       return { kind: 'folder', path: parentPath, label: path.basename(parentPath), bookmarkRoot: node.bookmarkRoot };
     }
     return undefined;
+  }
+}
+
+function idFor(node: Node): string {
+  switch (node.kind) {
+    case 'bookmark':
+      return `bookmark:${node.bookmark.id}`;
+    case 'group':
+      return `group:${node.group.id}`;
+    case 'folder':
+      return `folder:${node.bookmarkRoot}:${node.path}`;
+    case 'file':
+      return `file:${node.bookmarkRoot}:${node.path}`;
+    case 'recent-section':
+      return 'recent-section';
+    case 'recent-file':
+      return `recent-file:${node.path}`;
+    case 'error':
+      return `error:${node.parentPath}:${node.message}`;
   }
 }
 

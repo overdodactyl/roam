@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as fsp from 'fs/promises';
 import * as vscode from 'vscode';
+import { log } from './logger';
 
 const DEFAULT_POLL_MS = 3000;
 const DEBOUNCE_MS = 200;
@@ -45,17 +46,19 @@ export class DirectoryWatcher implements vscode.Disposable {
     }).catch(() => undefined);
 
     try {
-      entry.fsWatcher = fs.watch(dir, { persistent: false }, () => this.schedule(dir));
-      entry.fsWatcher.on('error', () => {
+      entry.fsWatcher = fs.watch(dir, { persistent: false }, () => this.schedule(dir, 'fs.watch'));
+      entry.fsWatcher.on('error', err => {
+        log(`fs.watch error for ${dir}: ${err.message} — falling back to polling`);
         entry.fsWatcher?.close();
         entry.fsWatcher = undefined;
       });
-    } catch {
-      // fs.watch not supported — polling will still cover us.
+    } catch (err) {
+      log(`fs.watch failed to start for ${dir}: ${err instanceof Error ? err.message : err} — polling only`);
     }
 
     const interval = pollingInterval();
     entry.poller = setInterval(() => this.pollOnce(dir), interval);
+    log(`watch ${dir} (poll every ${interval}ms, fs.watch=${entry.fsWatcher ? 'on' : 'off'})`);
   }
 
   unwatch(dir: string): void {
@@ -75,6 +78,7 @@ export class DirectoryWatcher implements vscode.Disposable {
       clearTimeout(entry.pending);
     }
     this.entries.delete(dir);
+    log(`unwatch ${dir}`);
   }
 
   private async pollOnce(dir: string): Promise<void> {
@@ -84,12 +88,13 @@ export class DirectoryWatcher implements vscode.Disposable {
     }
     const sig = await this.computeSignature(dir);
     if (sig !== entry.signature) {
+      log(`poll detected change in ${dir}`);
       entry.signature = sig;
-      this.schedule(dir);
+      this.schedule(dir, 'poll');
     }
   }
 
-  private schedule(dir: string): void {
+  private schedule(dir: string, source: string): void {
     const entry = this.entries.get(dir);
     if (!entry) {
       return;
@@ -106,6 +111,7 @@ export class DirectoryWatcher implements vscode.Disposable {
           current.signature = sig;
         }
       }).catch(() => undefined);
+      log(`refresh fired for ${dir} (via ${source})`);
       this.onChange(dir);
     }, DEBOUNCE_MS);
   }

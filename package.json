@@ -2,7 +2,7 @@
   "name": "dilops-file-browser",
   "displayName": "File Browser",
   "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "publisher": "dilops",
   "engines": {
     "vscode": "^1.84.0"
@@ -77,7 +77,8 @@
       { "command": "dilopsFileBrowser.setTypeFilter", "title": "Filter by File Type…", "category": "File Browser", "icon": "$(filter)" },
       { "command": "dilopsFileBrowser.runFile", "title": "Run File", "category": "File Browser", "icon": "$(play)" },
       { "command": "dilopsFileBrowser.refreshDiskUsage", "title": "Refresh Disk Usage (all bookmarks)", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "title": "Compute Disk Usage", "category": "File Browser" }
+      { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "title": "Compute Disk Usage", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.showLog", "title": "Show Log", "category": "File Browser" }
     ],
     "menus": {
       "commandPalette": [
