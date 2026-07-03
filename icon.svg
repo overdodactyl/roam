@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Rounded square background: deep navy -->
+  <rect width="128" height="128" rx="22" ry="22" fill="#1E3A5F"/>
+
+  <!-- Folder back tab (the flap that shows behind the main body) -->
+  <path d="M 22 42
+           L 44 42
+           L 52 50
+           L 106 50
+           A 4 4 0 0 1 110 54
+           L 110 60
+           L 18 60
+           L 18 46
+           A 4 4 0 0 1 22 42 Z"
+        fill="#D4A354"/>
+
+  <!-- Folder main body -->
+  <rect x="18" y="58" width="92" height="46" rx="4" fill="#F1B94A"/>
+
+  <!-- Subtle inner shadow / gradient hint (a thin band on top of the body) -->
+  <rect x="18" y="58" width="92" height="4" fill="#E0A736" opacity="0.6"/>
+
+  <!-- Bookmark ribbon: overlays folder body, hangs from the top -->
+  <path d="M 74 54
+           L 74 96
+           L 82 88
+           L 90 96
+           L 90 54
+           Z"
+        fill="#E85D3E"/>
+
+  <!-- Ribbon highlight (subtle sheen on the left half) -->
+  <path d="M 74 54
+           L 74 96
+           L 82 88
+           L 82 54
+           Z"
+        fill="#F26E4E"/>
+</svg>

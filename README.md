@@ -1,102 +1,165 @@
 # Roam
 
-Bookmark and browse any directory on disk — a native VS Code / Positron
-sidebar file explorer that isn't confined to the workspace root.
+**Bookmark and browse any directory on disk.** Roam adds a native sidebar
+file explorer to VS Code and Positron that isn't confined to your
+workspace root — pin any path (`~/`, a mounted share, an unrelated
+project) as its own tree and browse, edit, upload, download, and
+navigate to it without leaving the editor.
 
-VS Code's built-in Explorer is workspace-centric: everything you see is
-rooted at one folder. Roam adds a second sidebar view where you can pin
-any path (`~/`, `/mnt/data/`, a share, wherever) as its own bookmark
-tree — with the same native styling, file-icon theme, and drag-and-drop
-as the built-in Explorer.
+Uses the same native `TreeView` widget as the built-in Explorer, so it
+inherits your file icon theme and git decorations for free.
+
+---
 
 ## Features
 
-- **Bookmarks & groups** — pin any directory as a top-level entry.
-  Organize bookmarks into groups; drag or Move Up / Move Down to
-  reorder.
-- **Recent files** — a pinned section at the top of the tree tracks
-  the last 20 files opened through Roam.
-- **File operations on any tree item** — New File / New Folder / Rename
-  / Duplicate / Delete. Cross-directory Copy / Cut / Paste with
-  unique-name resolution.
-- **Multi-select bulk ops** — delete, copy, or duplicate several files
-  at once. Delete falls back to permanent delete when the OS trash
-  provider is unavailable (e.g. Remote SSH).
-- **Fuzzy search** — right-click a bookmark or folder → Search Files…
-  gives you a live QuickPick over its full contents.
-- **Go To Path** — command-palette entry that expands the tree straight
-  to any path (with `~/` expansion). Offers to bookmark it if it isn't
-  under one already.
-- **Git decorations** — files show M / A / D / U badges and the
-  matching colours from your theme, powered by the built-in git
-  extension.
-- **Git branch on bookmarks** — bookmarks that point at a repo root
-  show the current branch in their description.
-- **Project-type and Slurm badges** — folders containing `renv.lock`,
-  `pyproject.toml`, `_targets.R`, or `.git` get a coloured letter
-  badge; files matching `slurm-*.out|err` get an orange **S**.
-- **Sort by name / modified / size** with an ascending / descending
-  toggle. Modified time and size render inline via configurable
-  toggles (calendar / 123 icons in the title bar).
-- **Live refresh** — expanded directories poll for external changes
-  (created / removed files) so new output appears without hitting
-  Refresh. Uses `fs.watch` when it works and polls otherwise —
-  necessary on NFS where inotify isn't reliable.
-- **Upload from your computer** — drag a file from Finder / File
-  Explorer onto a bookmark or folder to upload it. Works over Remote
-  SSH: bytes stream from your client to the remote host.
-- **Download to your computer** — right-click any file → Download to
-  My Computer… Serves the file over a per-download ephemeral local
-  HTTP tunnel (via `asExternalUri`) so your client browser saves it
-  normally. Files > 512 MB / folders fall back to a copyable `scp`
-  command.
-- **Open folder as workspace** — three flavours: replace current,
-  open in new window, or add as an additional workspace root.
-- **Run this file** — configurable per-extension run templates
-  (`Rscript ${file}`, `python ${file}`, etc.) fire in a new terminal
+**Bookmarks & organization**
+- Pin any directory as a top-level bookmark; expand as a lazy tree.
+- Group bookmarks into named collections.
+- Reorder with drag-and-drop or explicit Move Up / Move Down.
+- First-run seed adds `$HOME` automatically.
+
+**Navigation**
+- Fuzzy filename search scoped to any bookmark or folder.
+- Go To Path — type any path (with `~/` expansion) and jump the tree
+  straight to it, expanding ancestors.
+- Reveal Active Editor File in the tree with one command.
+- Recent Files section pins the last 20 files you opened.
+
+**File operations**
+- New File, New Folder, Rename, Duplicate, Delete (to trash — or
+  permanent delete with a second confirm when trash isn't available,
+  which is the case over Remote SSH).
+- Cross-directory Copy / Cut / Paste, with automatic name collision
+  handling.
+- Multi-select for bulk delete, duplicate, copy-path, remove-bookmark.
+
+**Signals baked into the tree**
+- Git decorations (M / A / D / U with theme colors).
+- Git branch shown on bookmarks pointing at a repo root.
+- Project-type badges — folders with `renv.lock` (R), `pyproject.toml`
+  (P), `_targets.R` (T), or `.git` (G) get a distinct-colored letter.
+- Slurm output detector — files matching `slurm-*.out|err` get an
+  orange **S**.
+- Modification time and file size in the description slot, each
+  toggled with a title-bar button.
+
+**Sort, filter, hide**
+- Sort by name, modified, or size. Ascending or descending.
+- File-type filter (`.R,.py,.qmd,…`) with common presets and a custom
+  option.
+- Toggle hidden files (dotfiles), modified dates, and file sizes on
+  and off from the title bar.
+- Honors workspace `files.exclude` (matched relative to each bookmark).
+- Auto-hides NetApp `.snapshot/` directories.
+
+**Live refresh**
+- External file changes (Slurm output, `mv` from a shell, `git checkout`)
+  appear in the tree without a manual refresh.
+- Uses `fs.watch` where reliable and falls back to a periodic
+  `readdir`-diff poll on NFS. Configurable interval.
+
+**Remote SSH file transfer**
+- **Upload** — drag files from Finder / File Explorer onto a bookmark
+  or folder. Bytes stream from your local machine to the remote host.
+- **Download** — right-click a file → Download to My Computer. Serves
+  the file over an ephemeral local HTTP tunnel; your OS browser saves
+  it to your Downloads folder.
+- Files > 512 MB and folders fall back to a copyable `scp` command
+  built from the current SSH host.
+
+**Workspace integration**
+- Open Folder / Open in New Window / Add to Workspace on any bookmark
+  or folder — the SSH remote follows automatically.
+- Run This File on `.R` / `.py` / `.sh` / `.qmd` / `.Rmd` via
+  configurable per-extension command templates. Runs in a new terminal
   at the file's directory.
+
+---
 
 ## Install
 
+**From `.vsix`:**
+
 ```sh
+git clone https://github.com/overdodactyl/roam
+cd roam
 npm install
 npm run compile
-npm run package     # produces roam.vsix
+npm run package        # produces roam.vsix
 ```
 
-Then in VS Code / Positron: `Ctrl+Shift+P` → `Extensions: Install from VSIX…`
-and pick the generated `.vsix`. Reload the window.
+Then in VS Code or Positron: `Ctrl+Shift+P` → `Extensions: Install from
+VSIX…` and pick `roam.vsix`. Reload the window.
 
-Roam also handles being installed on a remote (Remote SSH) host — VS Code
-carries the extension across and every feature works from the extension
-host on the remote side.
+**From Open VSX** (once published):
 
-## Development
-
-```sh
-npm install
-npm run watch       # incremental compile
+```
+ext install overdodactyl.roam
 ```
 
-Then press **F5** in the extension's project window to launch an
-Extension Development Host with Roam loaded. Iterate live; when done,
-`npm run package` produces a fresh `.vsix`.
+Roam is designed to run on remote hosts via Remote SSH — VS Code will
+carry it across and every feature (including upload / download / live
+refresh over NFS) works from there.
+
+---
+
+## Toolbar reference
+
+Left to right, the title bar of the Roam view exposes:
+
+| Icon              | Action                                         |
+| ---               | ---                                            |
+| `+`               | Add Bookmark… (folder picker)                  |
+| target            | Reveal Active Editor File in the tree          |
+| new-folder        | New Group…                                     |
+| go-to-file        | Go To Path…                                    |
+| filter            | Filter by File Type…                           |
+| sort-precedence   | Sort By… (name / modified / size, asc / desc)  |
+| calendar          | Show / Hide modified dates                     |
+| symbol-numeric    | Show / Hide file sizes                         |
+| eye / eye-closed  | Show / Hide hidden files (dotfiles)            |
+| refresh           | Refresh the tree                               |
+
+The dates, sizes, and hidden-files toggles all mirror their config
+setting and update the button icon based on the current state.
+
+---
+
+## Command palette
+
+All commands are prefixed with `Roam:`. Highlights:
+
+- `Roam: Add Bookmark…` / `Roam: Add Bookmark by Path…`
+- `Roam: New Group…`
+- `Roam: Go To Path…`
+- `Roam: Sort By…`
+- `Roam: Filter by File Type…`
+- `Roam: Reveal Active Editor File`
+- `Roam: Clear Recent Files`
+- `Roam: Refresh`
+- `Roam: Show Log` — opens the diagnostics output channel.
+- `Roam: Refresh Disk Usage (all bookmarks)`
+
+Everything else is context-scoped (right-click actions in the tree).
+
+---
 
 ## Settings
 
-| Setting                            | Default    | What it does                              |
-| ---                                | ---        | ---                                       |
-| `roam.showHiddenFiles`             | `false`    | Show dotfiles / dotdirs.                  |
-| `roam.foldersFirst`                | `true`     | Group folders above files in each dir.    |
-| `roam.respectFilesExclude`         | `true`     | Honor workspace `files.exclude` globs.    |
-| `roam.sortBy`                      | `name`     | `name` / `modified` / `size`.             |
-| `roam.sortDirection`               | `asc`      | `asc` / `desc`.                           |
-| `roam.showModified`                | `true`     | Show mtime in the description slot.       |
-| `roam.modifiedFormat`              | `compact`  | `compact` (e.g. `2h`) or `relative`.      |
-| `roam.showSize`                    | `false`    | Show file size in the description slot.   |
-| `roam.showBookmarkDiskUsage`       | `false`    | `du -sb` per bookmark. Expensive on NFS.  |
-| `roam.watchPollingIntervalMs`      | `3000`     | Live-refresh polling cadence (min 500).   |
-| `roam.runners`                     | see below  | Extension → command template map.         |
+| Setting                       | Default   | What it does                                      |
+| ---                           | ---       | ---                                               |
+| `roam.showHiddenFiles`        | `false`   | Show dotfiles / dotdirs.                          |
+| `roam.foldersFirst`           | `true`    | Group folders above files in each dir.            |
+| `roam.respectFilesExclude`    | `true`    | Honor workspace `files.exclude` globs.            |
+| `roam.sortBy`                 | `name`    | `name` / `modified` / `size`.                     |
+| `roam.sortDirection`          | `asc`     | `asc` / `desc`.                                   |
+| `roam.showModified`           | `true`    | Show mtime in the description slot.               |
+| `roam.modifiedFormat`         | `compact` | `compact` (e.g. `2h`) or `relative` (`2h ago`).   |
+| `roam.showSize`               | `false`   | Show file size in the description slot.           |
+| `roam.showBookmarkDiskUsage`  | `false`   | `du -sb` per bookmark. Expensive on NFS.          |
+| `roam.watchPollingIntervalMs` | `3000`    | Live-refresh polling cadence (min 500).           |
+| `roam.runners`                | see below | Extension → command template map for Run File.    |
 
 Default `roam.runners`:
 
@@ -112,10 +175,100 @@ Default `roam.runners`:
 ```
 
 `${file}` is shell-quoted safely at runtime. Templates run in a new
-terminal cd'd to the file's directory — so if your project needs a
-specific module or venv loaded, put that in your shell's startup file
-(`.zshrc`, `.bashrc`) or override the template.
+terminal `cd`'d to the file's directory — so if a project needs a
+specific module or venv loaded, either put that in your shell's startup
+file or override the template. E.g., to load a specific R module for
+`.R` files on a Slurm-managed cluster:
+
+```json
+"roam.runners": {
+  ".R": "module load R/4/4.2.2 && Rscript ${file}"
+}
+```
+
+---
+
+## Live refresh on NFS
+
+`fs.watch` (inotify on Linux) does not reliably deliver events for
+changes on NFS-mounted directories, so Roam uses a hybrid strategy:
+
+- `fs.watch` gives near-instant refresh when it works (local FS, some
+  network mounts).
+- A periodic `readdir` poll (default every 3 s, configurable via
+  `roam.watchPollingIntervalMs`) catches the changes `fs.watch` misses.
+  The poll builds a `name:type` signature; a change fires the same
+  refresh path.
+
+Only expanded directories are polled, and bookmark paths themselves are
+always watched — so a shell script writing to `~/` while the Home
+bookmark is expanded will surface within one polling interval.
+
+---
+
+## Development
+
+```sh
+git clone https://github.com/overdodactyl/roam
+cd roam
+npm install
+npm run watch          # incremental compile
+```
+
+Then press **F5** in your editor to launch an Extension Development
+Host with Roam loaded. Iterate live; when done:
+
+```sh
+npm run package        # bundles roam.vsix
+```
+
+The source layout:
+
+- `src/extension.ts` — entry point; wires everything together.
+- `src/bookmarks.ts` / `src/recentFiles.ts` / `src/typeFilter.ts` —
+  persistent stores backed by `globalState`.
+- `src/bookmarkProvider.ts` — `TreeDataProvider`.
+- `src/commands.ts` — every command handler.
+- `src/dragDrop.ts` — bookmark reorder and OS-file upload.
+- `src/directoryWatcher.ts` — hybrid `fs.watch` + polling.
+- `src/gitDecorations.ts` / `src/projectDecorations.ts` — file
+  decoration providers.
+- `src/gitBranch.ts` — direct `.git/HEAD` fallback for repos the
+  built-in git extension hasn't adopted.
+- `src/download.ts` — HTTP tunnel + `openExternal` download flow.
+- `src/diskUsage.ts` — cached `du -sb` per bookmark.
+- `src/search.ts` — recursive fuzzy search.
+- `src/logger.ts` — diagnostics output channel (`Roam: Show Log`).
+
+---
+
+## Publishing
+
+To Open VSX (used by Positron and any editor that isn't stock VS Code):
+
+```sh
+npx ovsx publish -p <TOKEN> roam.vsix
+```
+
+Token is created at <https://open-vsx.org/user-settings/tokens>.
+
+To the VS Code Marketplace (Microsoft):
+
+```sh
+npx vsce publish -p <PAT>
+```
+
+Requires an Azure DevOps Personal Access Token and namespace
+verification.
+
+---
+
+## Contributing
+
+Issues and PRs welcome at <https://github.com/overdodactyl/roam/issues>.
+
+---
 
 ## License
 
-MIT.
+MIT © [overdodactyl](https://github.com/overdodactyl)

@@ -17,6 +17,7 @@
     "vscode": "^1.84.0"
   },
   "categories": ["Other"],
+  "icon": "icon.png",
   "activationEvents": [
     "onView:roam.tree"
   ],
