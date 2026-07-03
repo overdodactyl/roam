@@ -2,7 +2,7 @@
   "name": "dilops-file-browser",
   "displayName": "File Browser",
   "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "publisher": "dilops",
   "engines": {
     "vscode": "^1.84.0"

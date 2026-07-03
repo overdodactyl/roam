@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const gitDecorations = new GitDecorationProvider();
   const projectDecorations = new ProjectDecorationProvider();
   const provider = new BookmarkProvider(store, recent, typeFilter, diskUsage, gitDecorations);
-  const dragDrop = new BookmarkDragAndDropController(store);
+  const dragDrop = new BookmarkDragAndDropController(store, () => provider.refresh());
 
   const treeView = vscode.window.createTreeView('dilopsFileBrowser.tree', {
     treeDataProvider: provider,
