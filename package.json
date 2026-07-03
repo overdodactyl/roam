@@ -2,7 +2,7 @@
   "name": "dilops-file-browser",
   "displayName": "File Browser",
   "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "publisher": "dilops",
   "engines": {
     "vscode": "^1.84.0"
@@ -65,7 +65,9 @@
       { "command": "dilopsFileBrowser.goToPath", "title": "Go To Path…", "category": "File Browser", "icon": "$(go-to-file)" },
       { "command": "dilopsFileBrowser.sortBy", "title": "Sort By…", "category": "File Browser", "icon": "$(sort-precedence)" },
       { "command": "dilopsFileBrowser.enableShowModified", "title": "Show Modified Dates", "category": "File Browser", "icon": "$(calendar)" },
-      { "command": "dilopsFileBrowser.disableShowModified", "title": "Hide Modified Dates", "category": "File Browser", "icon": "$(calendar)" }
+      { "command": "dilopsFileBrowser.disableShowModified", "title": "Hide Modified Dates", "category": "File Browser", "icon": "$(calendar)" },
+      { "command": "dilopsFileBrowser.enableShowSize", "title": "Show File Sizes", "category": "File Browser", "icon": "$(symbol-numeric)" },
+      { "command": "dilopsFileBrowser.disableShowSize", "title": "Hide File Sizes", "category": "File Browser", "icon": "$(symbol-numeric)" }
     ],
     "menus": {
       "commandPalette": [
@@ -92,9 +94,11 @@
         { "command": "dilopsFileBrowser.sortBy", "when": "view == dilopsFileBrowser.tree", "group": "navigation@4" },
         { "command": "dilopsFileBrowser.enableShowModified", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showModified", "group": "navigation@5" },
         { "command": "dilopsFileBrowser.disableShowModified", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showModified", "group": "navigation@5" },
-        { "command": "dilopsFileBrowser.enableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showHiddenFiles", "group": "navigation@6" },
-        { "command": "dilopsFileBrowser.disableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showHiddenFiles", "group": "navigation@6" },
-        { "command": "dilopsFileBrowser.refresh", "when": "view == dilopsFileBrowser.tree", "group": "navigation@7" }
+        { "command": "dilopsFileBrowser.enableShowSize", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showSize", "group": "navigation@6" },
+        { "command": "dilopsFileBrowser.disableShowSize", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showSize", "group": "navigation@6" },
+        { "command": "dilopsFileBrowser.enableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showHiddenFiles", "group": "navigation@7" },
+        { "command": "dilopsFileBrowser.disableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showHiddenFiles", "group": "navigation@7" },
+        { "command": "dilopsFileBrowser.refresh", "when": "view == dilopsFileBrowser.tree", "group": "navigation@8" }
       ],
       "view/item/context": [
         { "command": "dilopsFileBrowser.searchInBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "0_search@1" },

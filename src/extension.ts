@@ -12,6 +12,8 @@ const SHOW_HIDDEN_CONTEXT = 'dilopsFileBrowser.showHiddenFiles';
 const SHOW_HIDDEN_SETTING = 'showHiddenFiles';
 const SHOW_MODIFIED_CONTEXT = 'dilopsFileBrowser.showModified';
 const SHOW_MODIFIED_SETTING = 'showModified';
+const SHOW_SIZE_CONTEXT = 'dilopsFileBrowser.showSize';
+const SHOW_SIZE_SETTING = 'showSize';
 
 export function activate(context: vscode.ExtensionContext): void {
   const store = new BookmarkStore(context);
@@ -36,6 +38,7 @@ export function activate(context: vscode.ExtensionContext): void {
   registerCommands(context, store, recent, provider, treeView);
   registerHiddenFilesToggle(context);
   registerShowModifiedToggle(context);
+  registerShowSizeToggle(context);
   registerConfigWatchers(context, provider);
 
   seedDefaults(context, store).catch(() => {
@@ -81,6 +84,30 @@ function registerShowModifiedToggle(context: vscode.ExtensionContext): void {
   );
 }
 
+function registerShowSizeToggle(context: vscode.ExtensionContext): void {
+  syncShowSizeContext();
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('dilopsFileBrowser.enableShowSize', async () => {
+      await vscode.workspace
+        .getConfiguration('dilopsFileBrowser')
+        .update(SHOW_SIZE_SETTING, true, vscode.ConfigurationTarget.Global);
+    }),
+    vscode.commands.registerCommand('dilopsFileBrowser.disableShowSize', async () => {
+      await vscode.workspace
+        .getConfiguration('dilopsFileBrowser')
+        .update(SHOW_SIZE_SETTING, false, vscode.ConfigurationTarget.Global);
+    }),
+  );
+}
+
+function syncShowSizeContext(): void {
+  const value = vscode.workspace
+    .getConfiguration('dilopsFileBrowser')
+    .get<boolean>(SHOW_SIZE_SETTING, false);
+  vscode.commands.executeCommand('setContext', SHOW_SIZE_CONTEXT, value);
+}
+
 function registerConfigWatchers(context: vscode.ExtensionContext, provider: BookmarkProvider): void {
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(event => {
@@ -99,6 +126,9 @@ function registerConfigWatchers(context: vscode.ExtensionContext, provider: Book
       }
       if (event.affectsConfiguration('dilopsFileBrowser.showModified')) {
         syncShowModifiedContext();
+      }
+      if (event.affectsConfiguration('dilopsFileBrowser.showSize')) {
+        syncShowSizeContext();
       }
       if (browserChanged || excludeChanged) {
         provider.refresh();
