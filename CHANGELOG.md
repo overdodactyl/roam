@@ -4,6 +4,28 @@ All notable changes to Roam are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] — 2026-07-03
+
+No user-facing changes — infrastructure and testing scaffold for the
+next release cycle.
+
+### Added
+- GitHub Actions CI workflow (typecheck, test, and package on every
+  push to `main` and every PR).
+- Release automation: pushing a `v*` tag builds, publishes to Open VSX,
+  and cuts a GitHub Release with the `.vsix` attached and the matching
+  CHANGELOG section as notes.
+- vitest test suite — 47 tests covering the formatting, parsing,
+  sorting, and `.git/HEAD` parsing logic.
+- Badges (CI status, Open VSX version, Open VSX downloads) on the README.
+
+### Changed
+- Pure helper functions consolidated into a single `src/utils.ts`
+  module. No behavior change; the previous per-file copies have been
+  removed.
+- README rewritten to lead with the Open VSX listing and document the
+  tag-driven release flow.
+
 ## [0.6.0] — 2026-07-03
 
 Initial public release.
@@ -95,4 +117,5 @@ history into one shipping tag.
 - `Roam: Show Log` command opens an output channel with watcher /
   refresh / download diagnostics.
 
+[0.6.1]: https://github.com/overdodactyl/roam/releases/tag/v0.6.1
 [0.6.0]: https://github.com/overdodactyl/roam/releases/tag/v0.6.0
