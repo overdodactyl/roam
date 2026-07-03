@@ -2,7 +2,7 @@
   "name": "dilops-file-browser",
   "displayName": "File Browser",
   "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "publisher": "dilops",
   "engines": {
     "vscode": "^1.84.0"
@@ -62,7 +62,8 @@
       { "command": "dilopsFileBrowser.delete", "title": "Delete (Move to Trash)", "category": "File Browser" },
       { "command": "dilopsFileBrowser.duplicate", "title": "Duplicate", "category": "File Browser" },
       { "command": "dilopsFileBrowser.searchInBookmark", "title": "Search Files…", "category": "File Browser", "icon": "$(search)" },
-      { "command": "dilopsFileBrowser.goToPath", "title": "Go To Path…", "category": "File Browser", "icon": "$(go-to-file)" }
+      { "command": "dilopsFileBrowser.goToPath", "title": "Go To Path…", "category": "File Browser", "icon": "$(go-to-file)" },
+      { "command": "dilopsFileBrowser.sortBy", "title": "Sort By…", "category": "File Browser", "icon": "$(sort-precedence)" }
     ],
     "menus": {
       "commandPalette": [
@@ -86,9 +87,10 @@
         { "command": "dilopsFileBrowser.addBookmark", "when": "view == dilopsFileBrowser.tree", "group": "navigation@1" },
         { "command": "dilopsFileBrowser.newGroup", "when": "view == dilopsFileBrowser.tree", "group": "navigation@2" },
         { "command": "dilopsFileBrowser.goToPath", "when": "view == dilopsFileBrowser.tree", "group": "navigation@3" },
-        { "command": "dilopsFileBrowser.enableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showHiddenFiles", "group": "navigation@4" },
-        { "command": "dilopsFileBrowser.disableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showHiddenFiles", "group": "navigation@4" },
-        { "command": "dilopsFileBrowser.refresh", "when": "view == dilopsFileBrowser.tree", "group": "navigation@5" }
+        { "command": "dilopsFileBrowser.sortBy", "when": "view == dilopsFileBrowser.tree", "group": "navigation@4" },
+        { "command": "dilopsFileBrowser.enableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showHiddenFiles", "group": "navigation@5" },
+        { "command": "dilopsFileBrowser.disableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showHiddenFiles", "group": "navigation@5" },
+        { "command": "dilopsFileBrowser.refresh", "when": "view == dilopsFileBrowser.tree", "group": "navigation@6" }
       ],
       "view/item/context": [
         { "command": "dilopsFileBrowser.searchInBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "0_search@1" },
@@ -127,6 +129,28 @@
           "type": "boolean",
           "default": true,
           "description": "Honor the workspace `files.exclude` glob patterns (e.g. hide node_modules, .git). Patterns are matched against paths relative to each bookmark root."
+        },
+        "dilopsFileBrowser.sortBy": {
+          "type": "string",
+          "enum": ["name", "modified", "size"],
+          "default": "name",
+          "description": "Sort files and folders by this attribute."
+        },
+        "dilopsFileBrowser.sortDirection": {
+          "type": "string",
+          "enum": ["asc", "desc"],
+          "default": "asc",
+          "description": "Sort direction. `asc`: A→Z / oldest→newest / smallest→largest. `desc`: reverse."
+        },
+        "dilopsFileBrowser.showModified": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show relative modification time (e.g. `2h ago`, `Jul 1`) next to each file and folder."
+        },
+        "dilopsFileBrowser.showSize": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show file size (e.g. `4.2 KB`) next to each file."
         }
       }
     }

@@ -67,7 +67,11 @@ function registerConfigWatchers(context: vscode.ExtensionContext, provider: Book
       const browserChanged =
         event.affectsConfiguration('dilopsFileBrowser.showHiddenFiles') ||
         event.affectsConfiguration('dilopsFileBrowser.foldersFirst') ||
-        event.affectsConfiguration('dilopsFileBrowser.respectFilesExclude');
+        event.affectsConfiguration('dilopsFileBrowser.respectFilesExclude') ||
+        event.affectsConfiguration('dilopsFileBrowser.sortBy') ||
+        event.affectsConfiguration('dilopsFileBrowser.sortDirection') ||
+        event.affectsConfiguration('dilopsFileBrowser.showModified') ||
+        event.affectsConfiguration('dilopsFileBrowser.showSize');
       const excludeChanged = event.affectsConfiguration('files.exclude');
       if (event.affectsConfiguration('dilopsFileBrowser.showHiddenFiles')) {
         syncShowHiddenContext();

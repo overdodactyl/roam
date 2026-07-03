@@ -353,6 +353,30 @@ export function registerCommands(
     await searchBookmark(rootPath, rootLabel);
   }));
 
+  // --- Sort By ----------------------------------------------------------
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.sortBy', async () => {
+    type SortChoice = vscode.QuickPickItem & { sortBy: 'name' | 'modified' | 'size'; direction: 'asc' | 'desc' };
+    const config = vscode.workspace.getConfiguration('dilopsFileBrowser');
+    const currentBy = config.get<string>('sortBy', 'name');
+    const currentDir = config.get<string>('sortDirection', 'asc');
+    const mark = (by: string, dir: string): string => (by === currentBy && dir === currentDir ? '$(check) ' : '     ');
+    const items: SortChoice[] = [
+      { label: `${mark('name', 'asc')}Name  A → Z`, sortBy: 'name', direction: 'asc' },
+      { label: `${mark('name', 'desc')}Name  Z → A`, sortBy: 'name', direction: 'desc' },
+      { label: `${mark('modified', 'desc')}Modified  newest first`, sortBy: 'modified', direction: 'desc' },
+      { label: `${mark('modified', 'asc')}Modified  oldest first`, sortBy: 'modified', direction: 'asc' },
+      { label: `${mark('size', 'desc')}Size  largest first`, sortBy: 'size', direction: 'desc' },
+      { label: `${mark('size', 'asc')}Size  smallest first`, sortBy: 'size', direction: 'asc' },
+    ];
+    const chosen = await vscode.window.showQuickPick(items, { placeHolder: 'Sort files by…' });
+    if (!chosen) {
+      return;
+    }
+    await config.update('sortBy', chosen.sortBy, vscode.ConfigurationTarget.Global);
+    await config.update('sortDirection', chosen.direction, vscode.ConfigurationTarget.Global);
+  }));
+
   // --- Go To Path -------------------------------------------------------
 
   sub.push(vscode.commands.registerCommand('dilopsFileBrowser.goToPath', async () => {

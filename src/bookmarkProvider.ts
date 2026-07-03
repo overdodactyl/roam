@@ -1,15 +1,19 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
+import type { Dirent } from 'fs';
 import * as path from 'path';
 import { minimatch } from 'minimatch';
 import { Bookmark, BookmarkStore, Group } from './bookmarks';
 import { RecentFilesStore } from './recentFiles';
 
+export type SortBy = 'name' | 'modified' | 'size';
+export type SortDirection = 'asc' | 'desc';
+
 export type Node =
   | { kind: 'bookmark'; bookmark: Bookmark }
   | { kind: 'group'; group: Group }
-  | { kind: 'folder'; path: string; label: string; bookmarkRoot: string }
-  | { kind: 'file'; path: string; label: string; bookmarkRoot: string }
+  | { kind: 'folder'; path: string; label: string; bookmarkRoot: string; mtime?: number; size?: number }
+  | { kind: 'file'; path: string; label: string; bookmarkRoot: string; mtime?: number; size?: number }
   | { kind: 'recent-section' }
   | { kind: 'recent-file'; path: string }
   | { kind: 'error'; message: string; parentPath: string };
@@ -76,14 +80,16 @@ export class BookmarkProvider implements vscode.TreeDataProvider<Node> {
     if (node.kind === 'folder') {
       const item = new vscode.TreeItem(vscode.Uri.file(node.path), vscode.TreeItemCollapsibleState.Collapsed);
       item.contextValue = 'folder';
-      item.tooltip = node.path;
+      item.tooltip = tooltipFor(node);
+      item.description = descriptionFor(node);
       return item;
     }
 
     // file
     const item = new vscode.TreeItem(vscode.Uri.file(node.path), vscode.TreeItemCollapsibleState.None);
     item.contextValue = 'file';
-    item.tooltip = node.path;
+    item.tooltip = tooltipFor(node);
+    item.description = descriptionFor(node);
     item.command = openFileCommand(node.path);
     return item;
   }
@@ -157,52 +163,169 @@ async function readDir(dirPath: string, bookmarkRoot: string): Promise<Node[]> {
   const showHidden = browserConfig.get<boolean>('showHiddenFiles', false);
   const foldersFirst = browserConfig.get<boolean>('foldersFirst', true);
   const respectExclude = browserConfig.get<boolean>('respectFilesExclude', true);
+  const sortBy = browserConfig.get<SortBy>('sortBy', 'name');
+  const sortDirection = browserConfig.get<SortDirection>('sortDirection', 'asc');
   const excludePatterns = respectExclude ? collectFilesExcludePatterns() : [];
 
-  let entries: Array<{ name: string; isDir: boolean }>;
+  interface RawEntry {
+    name: string;
+    fullPath: string;
+    isDir: boolean;
+    mtime?: number;
+    size?: number;
+  }
+
+  let raw: Dirent[];
   try {
-    const raw = await fs.readdir(dirPath, { withFileTypes: true });
-    entries = raw.map(e => ({
-      name: e.name,
-      isDir: e.isDirectory() || (e.isSymbolicLink() && guessSymlinkIsDir(path.join(dirPath, e.name))),
-    }));
+    raw = await fs.readdir(dirPath, { withFileTypes: true });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     return [{ kind: 'error', message: `Cannot read: ${message}`, parentPath: dirPath }];
   }
 
-  entries = entries.filter(entry => {
-    if (entry.name === '.snapshot') {
-      // NetApp snapshot dirs — always hide, they're not real user data.
+  // Pre-filter names before we spend the stat syscalls.
+  const filtered = raw.filter(e => {
+    if (e.name === '.snapshot') {
       return false;
     }
-    if (!showHidden && entry.name.startsWith('.')) {
+    if (!showHidden && e.name.startsWith('.')) {
       return false;
     }
     if (excludePatterns.length > 0) {
-      const fullPath = path.join(dirPath, entry.name);
-      const rel = relativeFromRoot(bookmarkRoot, fullPath);
-      if (matchesAny(rel, entry.name, excludePatterns)) {
+      const rel = relativeFromRoot(bookmarkRoot, path.join(dirPath, e.name));
+      if (matchesAny(rel, e.name, excludePatterns)) {
         return false;
       }
     }
     return true;
   });
 
+  const entries: RawEntry[] = await Promise.all(filtered.map(async e => {
+    const fullPath = path.join(dirPath, e.name);
+    let isDir = e.isDirectory();
+    let mtime: number | undefined;
+    let size: number | undefined;
+    try {
+      // Follow symlinks for isDir determination and for mtime/size display.
+      const stat = await fs.stat(fullPath);
+      isDir = stat.isDirectory();
+      mtime = stat.mtimeMs;
+      size = stat.size;
+    } catch {
+      // stat may fail on broken symlinks or ACL-restricted paths; fall back to dirent flags.
+      if (e.isSymbolicLink()) {
+        isDir = false;
+      }
+    }
+    return { name: e.name, fullPath, isDir, mtime, size };
+  }));
+
   entries.sort((a, b) => {
     if (foldersFirst && a.isDir !== b.isDir) {
       return a.isDir ? -1 : 1;
     }
-    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+    return compareBy(sortBy, sortDirection, a, b);
   });
 
   return entries.map(entry => {
-    const fullPath = path.join(dirPath, entry.name);
     if (entry.isDir) {
-      return { kind: 'folder', path: fullPath, label: entry.name, bookmarkRoot };
+      return { kind: 'folder', path: entry.fullPath, label: entry.name, bookmarkRoot, mtime: entry.mtime, size: entry.size };
     }
-    return { kind: 'file', path: fullPath, label: entry.name, bookmarkRoot };
+    return { kind: 'file', path: entry.fullPath, label: entry.name, bookmarkRoot, mtime: entry.mtime, size: entry.size };
   });
+}
+
+function compareBy(
+  sortBy: SortBy,
+  direction: SortDirection,
+  a: { name: string; mtime?: number; size?: number },
+  b: { name: string; mtime?: number; size?: number },
+): number {
+  const dir = direction === 'desc' ? -1 : 1;
+  if (sortBy === 'modified') {
+    const am = a.mtime ?? 0;
+    const bm = b.mtime ?? 0;
+    if (am !== bm) {
+      return (am - bm) * dir;
+    }
+    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+  }
+  if (sortBy === 'size') {
+    const as = a.size ?? 0;
+    const bs = b.size ?? 0;
+    if (as !== bs) {
+      return (as - bs) * dir;
+    }
+    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+  }
+  // name
+  return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }) * dir;
+}
+
+function tooltipFor(node: { path: string; mtime?: number; size?: number }): vscode.MarkdownString {
+  const md = new vscode.MarkdownString();
+  md.appendMarkdown(`\`${node.path}\``);
+  if (node.mtime !== undefined) {
+    md.appendMarkdown(`  \nModified: ${new Date(node.mtime).toLocaleString()}`);
+  }
+  if (node.size !== undefined) {
+    md.appendMarkdown(`  \nSize: ${formatSize(node.size)}`);
+  }
+  return md;
+}
+
+function descriptionFor(node: { mtime?: number; size?: number; kind: 'file' | 'folder' }): string {
+  const showModified = vscode.workspace.getConfiguration('dilopsFileBrowser').get<boolean>('showModified', true);
+  const showSize = vscode.workspace.getConfiguration('dilopsFileBrowser').get<boolean>('showSize', false);
+  const bits: string[] = [];
+  if (showModified && node.mtime !== undefined) {
+    bits.push(formatRelativeTime(node.mtime));
+  }
+  if (showSize && node.size !== undefined && node.kind === 'file') {
+    bits.push(formatSize(node.size));
+  }
+  return bits.join('  ·  ');
+}
+
+function formatRelativeTime(mtime: number): string {
+  const now = Date.now();
+  const diffMs = now - mtime;
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) {
+    return 'just now';
+  }
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) {
+    return `${diffMin}m ago`;
+  }
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) {
+    return `${diffH}h ago`;
+  }
+  const diffD = Math.floor(diffH / 24);
+  if (diffD < 7) {
+    return `${diffD}d ago`;
+  }
+  const d = new Date(mtime);
+  const nowD = new Date(now);
+  const sameYear = d.getFullYear() === nowD.getFullYear();
+  const month = d.toLocaleString(undefined, { month: 'short' });
+  const day = d.getDate();
+  return sameYear ? `${month} ${day}` : `${month} ${day} ${d.getFullYear()}`;
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  const units = ['KB', 'MB', 'GB', 'TB'];
+  let value = bytes / 1024;
+  let unit = units[0];
+  for (let i = 1; i < units.length && value >= 1024; i++) {
+    value /= 1024;
+    unit = units[i];
+  }
+  return value < 10 ? `${value.toFixed(1)} ${unit}` : `${Math.round(value)} ${unit}`;
 }
 
 function collectFilesExcludePatterns(): string[] {
@@ -232,16 +355,6 @@ function matchesAny(relPath: string, basename: string, patterns: string[]): bool
     }
   }
   return false;
-}
-
-function guessSymlinkIsDir(linkPath: string): boolean {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const statSync = require('fs').statSync as (p: string) => { isDirectory(): boolean };
-    return statSync(linkPath).isDirectory();
-  } catch {
-    return false;
-  }
 }
 
 function collapseHome(p: string): string {
