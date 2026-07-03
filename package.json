@@ -2,7 +2,7 @@
   "name": "dilops-file-browser",
   "displayName": "File Browser",
   "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "dilops",
   "engines": {
     "vscode": "^1.84.0"
@@ -63,7 +63,9 @@
       { "command": "dilopsFileBrowser.duplicate", "title": "Duplicate", "category": "File Browser" },
       { "command": "dilopsFileBrowser.searchInBookmark", "title": "Search Files…", "category": "File Browser", "icon": "$(search)" },
       { "command": "dilopsFileBrowser.goToPath", "title": "Go To Path…", "category": "File Browser", "icon": "$(go-to-file)" },
-      { "command": "dilopsFileBrowser.sortBy", "title": "Sort By…", "category": "File Browser", "icon": "$(sort-precedence)" }
+      { "command": "dilopsFileBrowser.sortBy", "title": "Sort By…", "category": "File Browser", "icon": "$(sort-precedence)" },
+      { "command": "dilopsFileBrowser.enableShowModified", "title": "Show Modified Dates", "category": "File Browser", "icon": "$(calendar)" },
+      { "command": "dilopsFileBrowser.disableShowModified", "title": "Hide Modified Dates", "category": "File Browser", "icon": "$(calendar)" }
     ],
     "menus": {
       "commandPalette": [
@@ -88,9 +90,11 @@
         { "command": "dilopsFileBrowser.newGroup", "when": "view == dilopsFileBrowser.tree", "group": "navigation@2" },
         { "command": "dilopsFileBrowser.goToPath", "when": "view == dilopsFileBrowser.tree", "group": "navigation@3" },
         { "command": "dilopsFileBrowser.sortBy", "when": "view == dilopsFileBrowser.tree", "group": "navigation@4" },
-        { "command": "dilopsFileBrowser.enableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showHiddenFiles", "group": "navigation@5" },
-        { "command": "dilopsFileBrowser.disableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showHiddenFiles", "group": "navigation@5" },
-        { "command": "dilopsFileBrowser.refresh", "when": "view == dilopsFileBrowser.tree", "group": "navigation@6" }
+        { "command": "dilopsFileBrowser.enableShowModified", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showModified", "group": "navigation@5" },
+        { "command": "dilopsFileBrowser.disableShowModified", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showModified", "group": "navigation@5" },
+        { "command": "dilopsFileBrowser.enableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showHiddenFiles", "group": "navigation@6" },
+        { "command": "dilopsFileBrowser.disableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showHiddenFiles", "group": "navigation@6" },
+        { "command": "dilopsFileBrowser.refresh", "when": "view == dilopsFileBrowser.tree", "group": "navigation@7" }
       ],
       "view/item/context": [
         { "command": "dilopsFileBrowser.searchInBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "0_search@1" },
@@ -145,7 +149,17 @@
         "dilopsFileBrowser.showModified": {
           "type": "boolean",
           "default": true,
-          "description": "Show relative modification time (e.g. `2h ago`, `Jul 1`) next to each file and folder."
+          "description": "Show relative modification time next to each file and folder."
+        },
+        "dilopsFileBrowser.modifiedFormat": {
+          "type": "string",
+          "enum": ["compact", "relative"],
+          "enumDescriptions": [
+            "Terse: 2h, 3d, Jul 1",
+            "Verbose: 2h ago, 3d ago, Jul 1"
+          ],
+          "default": "compact",
+          "description": "Format for modification times shown in the tree."
         },
         "dilopsFileBrowser.showSize": {
           "type": "boolean",

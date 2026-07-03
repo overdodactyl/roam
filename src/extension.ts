@@ -10,6 +10,8 @@ import { GitDecorationProvider } from './gitDecorations';
 const SEEDED_KEY = 'dilopsFileBrowser.defaultsSeeded';
 const SHOW_HIDDEN_CONTEXT = 'dilopsFileBrowser.showHiddenFiles';
 const SHOW_HIDDEN_SETTING = 'showHiddenFiles';
+const SHOW_MODIFIED_CONTEXT = 'dilopsFileBrowser.showModified';
+const SHOW_MODIFIED_SETTING = 'showModified';
 
 export function activate(context: vscode.ExtensionContext): void {
   const store = new BookmarkStore(context);
@@ -33,6 +35,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   registerCommands(context, store, recent, provider, treeView);
   registerHiddenFilesToggle(context);
+  registerShowModifiedToggle(context);
   registerConfigWatchers(context, provider);
 
   seedDefaults(context, store).catch(() => {
@@ -61,6 +64,23 @@ function registerHiddenFilesToggle(context: vscode.ExtensionContext): void {
   );
 }
 
+function registerShowModifiedToggle(context: vscode.ExtensionContext): void {
+  syncShowModifiedContext();
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('dilopsFileBrowser.enableShowModified', async () => {
+      await vscode.workspace
+        .getConfiguration('dilopsFileBrowser')
+        .update(SHOW_MODIFIED_SETTING, true, vscode.ConfigurationTarget.Global);
+    }),
+    vscode.commands.registerCommand('dilopsFileBrowser.disableShowModified', async () => {
+      await vscode.workspace
+        .getConfiguration('dilopsFileBrowser')
+        .update(SHOW_MODIFIED_SETTING, false, vscode.ConfigurationTarget.Global);
+    }),
+  );
+}
+
 function registerConfigWatchers(context: vscode.ExtensionContext, provider: BookmarkProvider): void {
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(event => {
@@ -71,16 +91,27 @@ function registerConfigWatchers(context: vscode.ExtensionContext, provider: Book
         event.affectsConfiguration('dilopsFileBrowser.sortBy') ||
         event.affectsConfiguration('dilopsFileBrowser.sortDirection') ||
         event.affectsConfiguration('dilopsFileBrowser.showModified') ||
-        event.affectsConfiguration('dilopsFileBrowser.showSize');
+        event.affectsConfiguration('dilopsFileBrowser.showSize') ||
+        event.affectsConfiguration('dilopsFileBrowser.modifiedFormat');
       const excludeChanged = event.affectsConfiguration('files.exclude');
       if (event.affectsConfiguration('dilopsFileBrowser.showHiddenFiles')) {
         syncShowHiddenContext();
+      }
+      if (event.affectsConfiguration('dilopsFileBrowser.showModified')) {
+        syncShowModifiedContext();
       }
       if (browserChanged || excludeChanged) {
         provider.refresh();
       }
     }),
   );
+}
+
+function syncShowModifiedContext(): void {
+  const value = vscode.workspace
+    .getConfiguration('dilopsFileBrowser')
+    .get<boolean>(SHOW_MODIFIED_SETTING, true);
+  vscode.commands.executeCommand('setContext', SHOW_MODIFIED_CONTEXT, value);
 }
 
 function syncShowHiddenContext(): void {

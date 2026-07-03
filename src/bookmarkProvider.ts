@@ -275,11 +275,13 @@ function tooltipFor(node: { path: string; mtime?: number; size?: number }): vsco
 }
 
 function descriptionFor(node: { mtime?: number; size?: number; kind: 'file' | 'folder' }): string {
-  const showModified = vscode.workspace.getConfiguration('dilopsFileBrowser').get<boolean>('showModified', true);
-  const showSize = vscode.workspace.getConfiguration('dilopsFileBrowser').get<boolean>('showSize', false);
+  const cfg = vscode.workspace.getConfiguration('dilopsFileBrowser');
+  const showModified = cfg.get<boolean>('showModified', true);
+  const showSize = cfg.get<boolean>('showSize', false);
+  const compact = cfg.get<string>('modifiedFormat', 'compact') === 'compact';
   const bits: string[] = [];
   if (showModified && node.mtime !== undefined) {
-    bits.push(formatRelativeTime(node.mtime));
+    bits.push(formatRelativeTime(node.mtime, compact));
   }
   if (showSize && node.size !== undefined && node.kind === 'file') {
     bits.push(formatSize(node.size));
@@ -287,24 +289,25 @@ function descriptionFor(node: { mtime?: number; size?: number; kind: 'file' | 'f
   return bits.join('  ·  ');
 }
 
-function formatRelativeTime(mtime: number): string {
+function formatRelativeTime(mtime: number, compact: boolean): string {
   const now = Date.now();
   const diffMs = now - mtime;
   const diffSec = Math.floor(diffMs / 1000);
+  const suffix = compact ? '' : ' ago';
   if (diffSec < 60) {
-    return 'just now';
+    return compact ? 'now' : 'just now';
   }
   const diffMin = Math.floor(diffSec / 60);
   if (diffMin < 60) {
-    return `${diffMin}m ago`;
+    return `${diffMin}m${suffix}`;
   }
   const diffH = Math.floor(diffMin / 60);
   if (diffH < 24) {
-    return `${diffH}h ago`;
+    return `${diffH}h${suffix}`;
   }
   const diffD = Math.floor(diffH / 24);
   if (diffD < 7) {
-    return `${diffD}d ago`;
+    return `${diffD}d${suffix}`;
   }
   const d = new Date(mtime);
   const nowD = new Date(now);
