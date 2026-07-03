@@ -2,7 +2,7 @@
   "name": "dilops-file-browser",
   "displayName": "File Browser",
   "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "publisher": "dilops",
   "engines": {
     "vscode": "^1.84.0"
@@ -78,7 +78,8 @@
       { "command": "dilopsFileBrowser.runFile", "title": "Run File", "category": "File Browser", "icon": "$(play)" },
       { "command": "dilopsFileBrowser.refreshDiskUsage", "title": "Refresh Disk Usage (all bookmarks)", "category": "File Browser" },
       { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "title": "Compute Disk Usage", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.showLog", "title": "Show Log", "category": "File Browser" }
+      { "command": "dilopsFileBrowser.showLog", "title": "Show Log", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.download", "title": "Download to My Computer…", "category": "File Browser", "icon": "$(cloud-download)" }
     ],
     "menus": {
       "commandPalette": [
@@ -102,7 +103,8 @@
         { "command": "dilopsFileBrowser.paste", "when": "false" },
         { "command": "dilopsFileBrowser.compare", "when": "false" },
         { "command": "dilopsFileBrowser.runFile", "when": "false" },
-        { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "when": "false" }
+        { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "when": "false" },
+        { "command": "dilopsFileBrowser.download", "when": "false" }
       ],
       "view/title": [
         { "command": "dilopsFileBrowser.addBookmark", "when": "view == dilopsFileBrowser.tree", "group": "navigation@1" },
@@ -125,6 +127,7 @@
         { "command": "dilopsFileBrowser.runFile", "when": "view == dilopsFileBrowser.tree && viewItem == file", "group": "0_search@2" },
         { "command": "dilopsFileBrowser.runFile", "when": "view == dilopsFileBrowser.tree && viewItem == recentFile", "group": "0_search@2" },
         { "command": "dilopsFileBrowser.compare", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == recentFile)", "group": "0_search@3" },
+        { "command": "dilopsFileBrowser.download", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == folder || viewItem == recentFile)", "group": "0_search@4" },
         { "command": "dilopsFileBrowser.copy", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == folder)", "group": "1a_clip@1" },
         { "command": "dilopsFileBrowser.cut", "when": "view == dilopsFileBrowser.tree && (viewItem == file || viewItem == folder)", "group": "1a_clip@2" },
         { "command": "dilopsFileBrowser.paste", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder) && dilopsFileBrowser.hasClipboard", "group": "1a_clip@3" },

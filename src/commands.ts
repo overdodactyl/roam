@@ -8,6 +8,7 @@ import { searchBookmark } from './search';
 import { BrowserClipboard, ClipboardMode } from './clipboard';
 import { TypeFilterStore, parseExtensionList } from './typeFilter';
 import { DiskUsageCache } from './diskUsage';
+import { downloadFile } from './download';
 
 export function registerCommands(
   context: vscode.ExtensionContext,
@@ -448,6 +449,21 @@ export function registerCommands(
     vscode.window.showInformationMessage('Select 1 or 2 files to compare.');
   }));
 
+  // --- Download to local machine ---------------------------------------
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.download', async (node?: Node, selection?: Node[]) => {
+    const targets = normalizeSelection(node, selection)
+      .filter(n => n.kind === 'file' || n.kind === 'folder' || n.kind === 'recent-file')
+      .map(n => (n as { path: string }).path);
+    if (targets.length === 0) {
+      return;
+    }
+    const sshHost = deriveSshHost();
+    for (const target of targets) {
+      await downloadFile(target, sshHost);
+    }
+  }));
+
   // --- Run This File ----------------------------------------------------
 
   sub.push(vscode.commands.registerCommand('dilopsFileBrowser.runFile', async (node?: Node) => {
@@ -764,6 +780,25 @@ async function deriveDuplicatePath(source: string): Promise<string | undefined> 
     const candidate = path.join(dir, `${stem} (copy${i === 1 ? '' : ` ${i}`})${ext}`);
     if (!(await pathExists(candidate))) {
       return candidate;
+    }
+  }
+  return undefined;
+}
+
+function deriveSshHost(): string | undefined {
+  // Not exposed on vscode.env in older API types, but any workspace-folder URI
+  // in a Remote SSH session carries the authority in the form
+  // "ssh-remote+<host>". Fall back to undefined if none available.
+  if (vscode.env.remoteName !== 'ssh-remote') {
+    return undefined;
+  }
+  const folder = vscode.workspace.workspaceFolders?.[0];
+  const authority = folder?.uri.authority ?? '';
+  if (authority.startsWith('ssh-remote+')) {
+    try {
+      return decodeURIComponent(authority.slice('ssh-remote+'.length));
+    } catch {
+      return authority.slice('ssh-remote+'.length);
     }
   }
   return undefined;
