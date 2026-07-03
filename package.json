@@ -2,7 +2,7 @@
   "name": "dilops-file-browser",
   "displayName": "File Browser",
   "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "publisher": "dilops",
   "engines": {
     "vscode": "^1.84.0"
@@ -79,7 +79,10 @@
       { "command": "dilopsFileBrowser.refreshDiskUsage", "title": "Refresh Disk Usage (all bookmarks)", "category": "File Browser" },
       { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "title": "Compute Disk Usage", "category": "File Browser" },
       { "command": "dilopsFileBrowser.showLog", "title": "Show Log", "category": "File Browser" },
-      { "command": "dilopsFileBrowser.download", "title": "Download to My Computer…", "category": "File Browser", "icon": "$(cloud-download)" }
+      { "command": "dilopsFileBrowser.download", "title": "Download to My Computer…", "category": "File Browser", "icon": "$(cloud-download)" },
+      { "command": "dilopsFileBrowser.openFolder", "title": "Open Folder", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.openFolderInNewWindow", "title": "Open Folder in New Window", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.addToWorkspace", "title": "Add Folder to Workspace", "category": "File Browser" }
     ],
     "menus": {
       "commandPalette": [
@@ -104,7 +107,10 @@
         { "command": "dilopsFileBrowser.compare", "when": "false" },
         { "command": "dilopsFileBrowser.runFile", "when": "false" },
         { "command": "dilopsFileBrowser.showBookmarkDiskUsage", "when": "false" },
-        { "command": "dilopsFileBrowser.download", "when": "false" }
+        { "command": "dilopsFileBrowser.download", "when": "false" },
+        { "command": "dilopsFileBrowser.openFolder", "when": "false" },
+        { "command": "dilopsFileBrowser.openFolderInNewWindow", "when": "false" },
+        { "command": "dilopsFileBrowser.addToWorkspace", "when": "false" }
       ],
       "view/title": [
         { "command": "dilopsFileBrowser.addBookmark", "when": "view == dilopsFileBrowser.tree", "group": "navigation@1" },
@@ -143,6 +149,9 @@
         { "command": "dilopsFileBrowser.removeBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "2_modify@3" },
         { "command": "dilopsFileBrowser.renameGroup", "when": "view == dilopsFileBrowser.tree && viewItem == group", "group": "2_modify@1" },
         { "command": "dilopsFileBrowser.deleteGroup", "when": "view == dilopsFileBrowser.tree && viewItem == group", "group": "2_modify@2" },
+        { "command": "dilopsFileBrowser.openFolder", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@1" },
+        { "command": "dilopsFileBrowser.openFolderInNewWindow", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@2" },
+        { "command": "dilopsFileBrowser.addToWorkspace", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "2b_workspace@3" },
         { "command": "dilopsFileBrowser.openInTerminal", "when": "view == dilopsFileBrowser.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "3_open@1" },
         { "command": "dilopsFileBrowser.revealInOS", "when": "view == dilopsFileBrowser.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "3_open@2" },
         { "command": "dilopsFileBrowser.copyPath", "when": "view == dilopsFileBrowser.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "4_copy@1" },

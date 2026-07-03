@@ -449,6 +449,36 @@ export function registerCommands(
     vscode.window.showInformationMessage('Select 1 or 2 files to compare.');
   }));
 
+  // --- Open folder as workspace ----------------------------------------
+
+  const openFolder = (forceNewWindow: boolean) => async (node?: Node): Promise<void> => {
+    const target = nodePath(node);
+    if (!target || (node?.kind !== 'bookmark' && node?.kind !== 'folder')) {
+      return;
+    }
+    await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(target), { forceNewWindow });
+  };
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.openFolder', openFolder(false)));
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.openFolderInNewWindow', openFolder(true)));
+
+  sub.push(vscode.commands.registerCommand('dilopsFileBrowser.addToWorkspace', async (node?: Node) => {
+    const target = nodePath(node);
+    if (!target || (node?.kind !== 'bookmark' && node?.kind !== 'folder')) {
+      return;
+    }
+    const targetUri = vscode.Uri.file(target);
+    const existing = vscode.workspace.workspaceFolders ?? [];
+    if (existing.some(f => f.uri.fsPath === targetUri.fsPath)) {
+      vscode.window.showInformationMessage(`${collapseHome(target)} is already in the workspace.`);
+      return;
+    }
+    const added = vscode.workspace.updateWorkspaceFolders(existing.length, 0, { uri: targetUri });
+    if (!added) {
+      vscode.window.showErrorMessage('Could not add folder to workspace.');
+    }
+  }));
+
   // --- Download to local machine ---------------------------------------
 
   sub.push(vscode.commands.registerCommand('dilopsFileBrowser.download', async (node?: Node, selection?: Node[]) => {
