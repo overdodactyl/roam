@@ -759,12 +759,13 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run bundle",
+    "compile": "tsc --noEmit -p ./",
+    "bundle": "node esbuild.config.mjs",
+    "watch": "node esbuild.config.mjs --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "package": "vsce package --out roam.vsix"
+    "package": "npm run bundle && vsce package --out roam.vsix"
   },
   "dependencies": {
     "minimatch": "^10.0.1"
@@ -774,6 +775,7 @@
     "@types/vscode": "^1.84.0",
     "@vitest/runner": "^4.1.9",
     "@vscode/vsce": "^3.2.0",
+    "esbuild": "^0.28.1",
     "typescript": "^5.4.0",
     "vitest": "^4.1.9"
   }
