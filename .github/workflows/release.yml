@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write  # for creating the GitHub Release
+
+jobs:
+  release:
+    name: Publish to Open VSX + GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify tag matches package.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+          echo "Publishing version $PKG_VERSION"
+
+      - name: Typecheck
+        run: npm run compile
+
+      - name: Package .vsix
+        run: npm run package
+
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OPEN_VSX_TOKEN }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "::error::Repo secret OPEN_VSX_TOKEN is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          npx ovsx publish -p "$OVSX_PAT" roam.vsix
+
+      - name: Extract release notes for this tag from CHANGELOG.md
+        id: notes
+        run: |
+          # Pull the section between the current version heading and the next heading.
+          # If nothing matches, fall back to a placeholder.
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" { found=1; print; next }
+            found && /^## \[/    { exit }
+            found                { print }
+          ' CHANGELOG.md > /tmp/release-notes.md
+
+          if [ ! -s /tmp/release-notes.md ]; then
+            echo "No CHANGELOG entry for $VERSION — using generated notes." > /tmp/release-notes.md
+          fi
+          echo "notes-file=/tmp/release-notes.md" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" roam.vsix \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file "${{ steps.notes.outputs.notes-file }}"
