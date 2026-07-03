@@ -9,6 +9,7 @@ import { GitLookup } from './gitDecorations';
 import { TypeFilterStore } from './typeFilter';
 import { DiskUsageCache, formatBytes } from './diskUsage';
 import { log } from './logger';
+import { readGitBranchAtPath } from './gitBranch';
 
 export type SortBy = 'name' | 'modified' | 'size';
 export type SortDirection = 'asc' | 'desc';
@@ -219,7 +220,8 @@ function bookmarkDescription(
   diskUsage: DiskUsageCache,
 ): string {
   const bits = [collapseHome(bookmarkPath)];
-  const branch = gitLookup?.getBranch(bookmarkPath);
+  // Prefer git ext (has richer state); fall back to reading .git/HEAD ourselves.
+  const branch = gitLookup?.getBranch(bookmarkPath) ?? readGitBranchAtPath(bookmarkPath);
   if (branch) {
     bits.push(branch);
   }
