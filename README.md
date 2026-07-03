@@ -2,6 +2,7 @@
 
 [![Open VSX Version](https://img.shields.io/open-vsx/v/overdodactyl/roam?label=Open%20VSX)](https://open-vsx.org/extension/overdodactyl/roam)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/overdodactyl/roam)](https://open-vsx.org/extension/overdodactyl/roam)
+[![CI](https://github.com/overdodactyl/roam/actions/workflows/ci.yml/badge.svg)](https://github.com/overdodactyl/roam/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 **Bookmark and browse any directory on disk.** Roam adds a native sidebar
@@ -257,24 +258,39 @@ The source layout:
 
 ---
 
-## Publishing
+## Releasing
 
-To Open VSX (used by Positron and any editor that isn't stock VS Code):
+Releases are automated by the [`release.yml`](.github/workflows/release.yml)
+GitHub Actions workflow, which triggers on any `v*` tag push.
+
+To cut a new release:
+
+1. Bump `version` in `package.json`.
+2. Add a `## [X.Y.Z] — YYYY-MM-DD` section to `CHANGELOG.md`.
+3. Commit and push to `main`.
+4. Tag and push:
+   ```sh
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+
+The workflow will:
+
+- Verify the tag matches `package.json`.
+- Typecheck and package the extension.
+- Publish to Open VSX (using the `OPEN_VSX_TOKEN` repo secret).
+- Create a GitHub Release with `roam.vsix` attached and the matching
+  CHANGELOG section as the notes.
+
+To publish manually (fallback):
 
 ```sh
+npm run compile
+npm run package
 npx ovsx publish -p <TOKEN> roam.vsix
 ```
 
-Token is created at <https://open-vsx.org/user-settings/tokens>.
-
-To the VS Code Marketplace (Microsoft):
-
-```sh
-npx vsce publish -p <PAT>
-```
-
-Requires an Azure DevOps Personal Access Token and namespace
-verification.
+Open VSX tokens are created at <https://open-vsx.org/user-settings/tokens>.
 
 ---
 
