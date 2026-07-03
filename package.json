@@ -1,0 +1,149 @@
+{
+  "name": "dilops-file-browser",
+  "displayName": "File Browser",
+  "description": "A native sidebar file browser for navigating arbitrary paths outside the workspace.",
+  "version": "0.2.2",
+  "publisher": "dilops",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onView:dilopsFileBrowser.tree"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "dilopsFileBrowser",
+          "title": "File Browser",
+          "icon": "$(folder-library)"
+        }
+      ]
+    },
+    "views": {
+      "dilopsFileBrowser": [
+        {
+          "id": "dilopsFileBrowser.tree",
+          "name": "Bookmarks",
+          "icon": "$(folder-library)",
+          "contextualTitle": "File Browser"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "dilopsFileBrowser.tree",
+        "contents": "No bookmarks yet.\n[Add Bookmark](command:dilopsFileBrowser.addBookmark)\n[New Group](command:dilopsFileBrowser.newGroup)\nPin any directory on disk — your home, a shares path, anywhere. Contents load lazily and files open with a single click."
+      }
+    ],
+    "commands": [
+      { "command": "dilopsFileBrowser.addBookmark", "title": "Add Bookmark…", "category": "File Browser", "icon": "$(add)" },
+      { "command": "dilopsFileBrowser.addBookmarkByPath", "title": "Add Bookmark by Path…", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.removeBookmark", "title": "Remove Bookmark", "category": "File Browser", "icon": "$(remove)" },
+      { "command": "dilopsFileBrowser.renameBookmark", "title": "Rename Bookmark…", "category": "File Browser", "icon": "$(edit)" },
+      { "command": "dilopsFileBrowser.moveBookmarkToGroup", "title": "Move to Group…", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.newGroup", "title": "New Group…", "category": "File Browser", "icon": "$(new-folder)" },
+      { "command": "dilopsFileBrowser.renameGroup", "title": "Rename Group…", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.deleteGroup", "title": "Delete Group…", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.refresh", "title": "Refresh", "category": "File Browser", "icon": "$(refresh)" },
+      { "command": "dilopsFileBrowser.enableShowHiddenFiles", "title": "Show Hidden Files", "category": "File Browser", "icon": "$(eye)" },
+      { "command": "dilopsFileBrowser.disableShowHiddenFiles", "title": "Hide Hidden Files", "category": "File Browser", "icon": "$(eye-closed)" },
+      { "command": "dilopsFileBrowser.revealInOS", "title": "Reveal in OS File Manager", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.copyPath", "title": "Copy Path", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.openInTerminal", "title": "Open in Integrated Terminal", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.addChildAsBookmark", "title": "Bookmark This Folder", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.openFile", "title": "Open File", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.clearRecent", "title": "Clear Recent Files", "category": "File Browser", "icon": "$(clear-all)" },
+      { "command": "dilopsFileBrowser.newFile", "title": "New File…", "category": "File Browser", "icon": "$(new-file)" },
+      { "command": "dilopsFileBrowser.newFolder", "title": "New Folder…", "category": "File Browser", "icon": "$(new-folder)" },
+      { "command": "dilopsFileBrowser.rename", "title": "Rename…", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.delete", "title": "Delete (Move to Trash)", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.duplicate", "title": "Duplicate", "category": "File Browser" },
+      { "command": "dilopsFileBrowser.searchInBookmark", "title": "Search Files…", "category": "File Browser", "icon": "$(search)" },
+      { "command": "dilopsFileBrowser.goToPath", "title": "Go To Path…", "category": "File Browser", "icon": "$(go-to-file)" }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "dilopsFileBrowser.removeBookmark", "when": "false" },
+        { "command": "dilopsFileBrowser.renameBookmark", "when": "false" },
+        { "command": "dilopsFileBrowser.moveBookmarkToGroup", "when": "false" },
+        { "command": "dilopsFileBrowser.renameGroup", "when": "false" },
+        { "command": "dilopsFileBrowser.deleteGroup", "when": "false" },
+        { "command": "dilopsFileBrowser.revealInOS", "when": "false" },
+        { "command": "dilopsFileBrowser.copyPath", "when": "false" },
+        { "command": "dilopsFileBrowser.openInTerminal", "when": "false" },
+        { "command": "dilopsFileBrowser.addChildAsBookmark", "when": "false" },
+        { "command": "dilopsFileBrowser.openFile", "when": "false" },
+        { "command": "dilopsFileBrowser.newFile", "when": "false" },
+        { "command": "dilopsFileBrowser.newFolder", "when": "false" },
+        { "command": "dilopsFileBrowser.rename", "when": "false" },
+        { "command": "dilopsFileBrowser.delete", "when": "false" },
+        { "command": "dilopsFileBrowser.duplicate", "when": "false" }
+      ],
+      "view/title": [
+        { "command": "dilopsFileBrowser.addBookmark", "when": "view == dilopsFileBrowser.tree", "group": "navigation@1" },
+        { "command": "dilopsFileBrowser.newGroup", "when": "view == dilopsFileBrowser.tree", "group": "navigation@2" },
+        { "command": "dilopsFileBrowser.goToPath", "when": "view == dilopsFileBrowser.tree", "group": "navigation@3" },
+        { "command": "dilopsFileBrowser.enableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && !dilopsFileBrowser.showHiddenFiles", "group": "navigation@4" },
+        { "command": "dilopsFileBrowser.disableShowHiddenFiles", "when": "view == dilopsFileBrowser.tree && dilopsFileBrowser.showHiddenFiles", "group": "navigation@4" },
+        { "command": "dilopsFileBrowser.refresh", "when": "view == dilopsFileBrowser.tree", "group": "navigation@5" }
+      ],
+      "view/item/context": [
+        { "command": "dilopsFileBrowser.searchInBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "0_search@1" },
+        { "command": "dilopsFileBrowser.searchInBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == folder", "group": "0_search@1" },
+        { "command": "dilopsFileBrowser.newFile", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "1_create@1" },
+        { "command": "dilopsFileBrowser.newFolder", "when": "view == dilopsFileBrowser.tree && (viewItem == bookmark || viewItem == folder)", "group": "1_create@2" },
+        { "command": "dilopsFileBrowser.addChildAsBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == folder", "group": "1_create@3" },
+        { "command": "dilopsFileBrowser.rename", "when": "view == dilopsFileBrowser.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@1" },
+        { "command": "dilopsFileBrowser.duplicate", "when": "view == dilopsFileBrowser.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@2" },
+        { "command": "dilopsFileBrowser.delete", "when": "view == dilopsFileBrowser.tree && (viewItem == folder || viewItem == file)", "group": "2_modify@3" },
+        { "command": "dilopsFileBrowser.renameBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "2_modify@1" },
+        { "command": "dilopsFileBrowser.moveBookmarkToGroup", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "2_modify@2" },
+        { "command": "dilopsFileBrowser.removeBookmark", "when": "view == dilopsFileBrowser.tree && viewItem == bookmark", "group": "2_modify@3" },
+        { "command": "dilopsFileBrowser.renameGroup", "when": "view == dilopsFileBrowser.tree && viewItem == group", "group": "2_modify@1" },
+        { "command": "dilopsFileBrowser.deleteGroup", "when": "view == dilopsFileBrowser.tree && viewItem == group", "group": "2_modify@2" },
+        { "command": "dilopsFileBrowser.openInTerminal", "when": "view == dilopsFileBrowser.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "3_open@1" },
+        { "command": "dilopsFileBrowser.revealInOS", "when": "view == dilopsFileBrowser.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "3_open@2" },
+        { "command": "dilopsFileBrowser.copyPath", "when": "view == dilopsFileBrowser.tree && viewItem =~ /^(bookmark|folder|file|recentFile)$/", "group": "4_copy@1" },
+        { "command": "dilopsFileBrowser.clearRecent", "when": "view == dilopsFileBrowser.tree && viewItem == recentSection", "group": "1_modify@1" }
+      ]
+    },
+    "configuration": {
+      "title": "File Browser",
+      "properties": {
+        "dilopsFileBrowser.showHiddenFiles": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show files and folders that start with a dot."
+        },
+        "dilopsFileBrowser.foldersFirst": {
+          "type": "boolean",
+          "default": true,
+          "description": "Sort folders before files within each directory."
+        },
+        "dilopsFileBrowser.respectFilesExclude": {
+          "type": "boolean",
+          "default": true,
+          "description": "Honor the workspace `files.exclude` glob patterns (e.g. hide node_modules, .git). Patterns are matched against paths relative to each bookmark root."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package --out dilops-file-browser.vsix"
+  },
+  "dependencies": {
+    "minimatch": "^10.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.84.0",
+    "@vscode/vsce": "^3.2.0",
+    "typescript": "^5.4.0"
+  }
+}
