@@ -1,25 +1,28 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
+import * as http from 'http';
 import * as path from 'path';
+import { randomBytes } from 'crypto';
 import { log } from './logger';
 
-const MAX_INLINE_BYTES = 100 * 1024 * 1024;
+const MAX_INLINE_BYTES = 512 * 1024 * 1024; // 512 MB — no base64 overhead now, we stream bytes.
+const SERVER_TIMEOUT_MS = 5 * 60 * 1000;
 
 /**
- * Downloads a remote file to the user's local machine by streaming its
- * bytes into a webview, which builds a Blob and clicks a download link.
- * Because webviews run on the client side of Remote SSH, the browser's
- * native download flow saves to the client's Downloads folder.
+ * Downloads a remote file to the user's local machine by:
+ *   1. Starting a localhost-only HTTP server on the remote host that
+ *      serves exactly one file at a random-token URL with
+ *      Content-Disposition: attachment.
+ *   2. Getting a client-accessible URL via vscode.env.asExternalUri —
+ *      VS Code Remote SSH port-forwards the localhost port through
+ *      the SSH tunnel.
+ *   3. Opening that URL via vscode.env.openExternal, which uses the
+ *      client's default browser. The browser downloads the file to
+ *      its usual Downloads folder.
  *
- * Auto-clicked anchor downloads with data: URIs get silently blocked by
- * VS Code's webview navigation handler. Two things make this reliable:
- *   - blob: URL from URL.createObjectURL (same-origin to the webview)
- *   - user-initiated click on a "Save" button (browsers trust these)
- *
- * Limitations:
- *   - Files > 100 MB: base64 encoding + IPC gets expensive. Falls back
- *     to showing a copyable scp command.
- *   - Directories: can't be streamed as a single blob. Same scp fallback.
+ * This is the only known-reliable way to trigger a real client-side
+ * download from a Remote SSH extension. Webview-based blob downloads
+ * are silently blocked by VS Code's webview navigation handler.
  */
 export async function downloadFile(filePath: string, sshHost: string | undefined): Promise<void> {
   let stat: Awaited<ReturnType<typeof fs.stat>>;
@@ -39,142 +42,73 @@ export async function downloadFile(filePath: string, sshHost: string | undefined
     return;
   }
 
-  const bytes = await vscode.window.withProgress({
-    location: vscode.ProgressLocation.Notification,
-    title: `Preparing ${path.basename(filePath)}`,
-    cancellable: false,
-  }, async () => fs.readFile(filePath));
+  const filename = path.basename(filePath);
+  const mime = guessMime(filename);
+  const token = randomBytes(24).toString('hex');
 
-  const b64 = bytes.toString('base64');
-  const name = path.basename(filePath);
-  const mime = guessMime(name);
-
-  log(`download ${filePath} (${formatSize(bytes.length)}) — opening webview`);
-  openDownloadPanel(name, mime, b64);
-}
-
-function openDownloadPanel(filename: string, mime: string, b64: string): void {
-  const panel = vscode.window.createWebviewPanel(
-    'dilopsFileBrowserDownload',
-    `Download ${filename}`,
-    { viewColumn: vscode.ViewColumn.Active, preserveFocus: false },
-    { enableScripts: true, retainContextWhenHidden: true },
-  );
-
-  panel.webview.html = renderHtml(panel.webview, filename, mime, b64);
-
-  panel.webview.onDidReceiveMessage(msg => {
-    if (msg?.kind === 'log') {
-      log(`download webview: ${msg.message}`);
-    } else if (msg?.kind === 'close') {
-      panel.dispose();
+  const server = http.createServer(async (req, res) => {
+    const url = req.url ?? '';
+    if (url !== `/download/${token}/${encodeURIComponent(filename)}`) {
+      res.statusCode = 404;
+      res.end('Not found');
+      log(`download server: rejected ${url}`);
+      return;
+    }
+    try {
+      const bytes = await fs.readFile(filePath);
+      res.setHeader('Content-Type', mime);
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeRfc5987(filename)}"`);
+      res.setHeader('Content-Length', String(bytes.length));
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(bytes);
+      log(`download server: served ${filePath} (${bytes.length} bytes)`);
+    } catch (err) {
+      res.statusCode = 500;
+      res.end(`Read error: ${err instanceof Error ? err.message : String(err)}`);
+      log(`download server: read failed — ${err instanceof Error ? err.message : err}`);
+    } finally {
+      // One-shot: shut down shortly after the response drains.
+      setTimeout(() => server.close(), 2000);
     }
   });
-}
 
-function renderHtml(webview: vscode.Webview, filename: string, mime: string, b64: string): string {
-  const nonce = randomNonce();
-  // CSP: allow inline script under nonce, blob URLs for download, and the
-  // webview's own scheme. Default-src 'none' locks everything else down.
-  const csp = [
-    `default-src 'none'`,
-    `script-src 'nonce-${nonce}'`,
-    `style-src ${webview.cspSource} 'unsafe-inline'`,
-    // No explicit allowance needed for anchor href=blob: — user-triggered
-    // downloads aren't gated by CSP.
-  ].join('; ');
+  await new Promise<void>((resolve, reject) => {
+    server.on('error', reject);
+    server.listen(0, '127.0.0.1', () => resolve());
+  });
 
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="${csp}">
-  <style>
-    body {
-      font-family: var(--vscode-font-family);
-      color: var(--vscode-foreground);
-      background: var(--vscode-editor-background);
-      padding: 32px;
-      max-width: 640px;
+  const address = server.address();
+  if (!address || typeof address === 'string') {
+    server.close();
+    vscode.window.showErrorMessage('Could not start local download server.');
+    return;
+  }
+  const port = address.port;
+  const localUri = vscode.Uri.parse(`http://127.0.0.1:${port}/download/${token}/${encodeURIComponent(filename)}`);
+  log(`download: server listening on 127.0.0.1:${port}, resolving external URI`);
+
+  let externalUri: vscode.Uri;
+  try {
+    externalUri = await vscode.env.asExternalUri(localUri);
+  } catch (err) {
+    server.close();
+    vscode.window.showErrorMessage(`Could not expose download URL: ${err instanceof Error ? err.message : String(err)}`);
+    return;
+  }
+
+  log(`download: external URI is ${externalUri.toString()}`);
+  await vscode.env.openExternal(externalUri);
+
+  // Backstop: force-close the server after the timeout even if the client
+  // never hits the URL (e.g. openExternal prompt was declined).
+  setTimeout(() => {
+    if (server.listening) {
+      server.close();
+      log('download server: closed by timeout');
     }
-    h2 { margin-top: 0; font-weight: 500; }
-    code {
-      background: var(--vscode-textCodeBlock-background);
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: var(--vscode-editor-font-family);
-    }
-    button {
-      background: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
-      border: none;
-      padding: 8px 18px;
-      font-family: var(--vscode-font-family);
-      font-size: 13px;
-      border-radius: 2px;
-      cursor: pointer;
-    }
-    button:hover { background: var(--vscode-button-hoverBackground); }
-    button:disabled { opacity: 0.5; cursor: default; }
-    #status { color: var(--vscode-descriptionForeground); margin-top: 12px; font-size: 12px; }
-    #error { color: var(--vscode-errorForeground); margin-top: 12px; font-size: 12px; white-space: pre-wrap; }
-    p { line-height: 1.5; }
-  </style>
-</head>
-<body>
-  <h2>Download <code>${escapeHtml(filename)}</code></h2>
-  <p>Click the button below to save this file to your local computer's Downloads folder.</p>
-  <p>
-    <button id="save-btn">Save file</button>
-    <button id="close-btn" style="margin-left: 8px; background: transparent; color: var(--vscode-foreground);">Cancel</button>
-  </p>
-  <div id="status">Ready.</div>
-  <div id="error"></div>
+  }, SERVER_TIMEOUT_MS);
 
-  <script nonce="${nonce}">
-    const vscode = acquireVsCodeApi();
-    const status = document.getElementById('status');
-    const errorEl = document.getElementById('error');
-    const saveBtn = document.getElementById('save-btn');
-    const closeBtn = document.getElementById('close-btn');
-    const filename = ${JSON.stringify(filename)};
-    const mime = ${JSON.stringify(mime)};
-    const b64 = ${JSON.stringify(b64)};
-
-    function b64ToBytes(str) {
-      const bin = atob(str);
-      const out = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) {
-        out[i] = bin.charCodeAt(i);
-      }
-      return out;
-    }
-
-    saveBtn.addEventListener('click', () => {
-      try {
-        const bytes = b64ToBytes(b64);
-        const blob = new Blob([bytes], { type: mime });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 30000);
-        status.textContent = 'Save triggered — check your browser\\'s downloads.';
-        saveBtn.disabled = true;
-        vscode.postMessage({ kind: 'log', message: 'save clicked, blob download triggered' });
-      } catch (err) {
-        errorEl.textContent = 'Download failed: ' + (err && err.message ? err.message : String(err));
-        vscode.postMessage({ kind: 'log', message: 'save failed: ' + (err && err.message ? err.message : String(err)) });
-      }
-    });
-
-    closeBtn.addEventListener('click', () => vscode.postMessage({ kind: 'close' }));
-  </script>
-</body>
-</html>`;
+  vscode.window.setStatusBarMessage(`Opening ${filename} in your browser to download…`, 4000);
 }
 
 async function showScpFallback(filePath: string, sshHost: string | undefined, reason: string): Promise<void> {
@@ -213,30 +147,15 @@ function guessMime(name: string): string {
     '.xml': 'application/xml',
     '.zip': 'application/zip',
   };
+  // Force octet-stream for common code/data files so the browser downloads
+  // instead of opening in a tab. The Content-Disposition header should be
+  // authoritative anyway, but browsers occasionally overrule it for text
+  // MIME types.
   return table[ext] ?? 'application/octet-stream';
 }
 
-function randomNonce(): string {
-  // Not security-critical; just a per-panel nonce for CSP.
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let out = '';
-  for (let i = 0; i < 24; i++) {
-    out += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return out;
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, ch => {
-    switch (ch) {
-      case '&': return '&amp;';
-      case '<': return '&lt;';
-      case '>': return '&gt;';
-      case '"': return '&quot;';
-      case "'": return '&#39;';
-      default: return ch;
-    }
-  });
+function encodeRfc5987(s: string): string {
+  return s.replace(/[^\x20-\x7e]/g, ch => `_${ch.charCodeAt(0).toString(16)}_`);
 }
 
 function formatSize(bytes: number): string {
