@@ -1,5 +1,9 @@
 # Roam
 
+[![Open VSX Version](https://img.shields.io/open-vsx/v/overdodactyl/roam?label=Open%20VSX)](https://open-vsx.org/extension/overdodactyl/roam)
+[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/overdodactyl/roam)](https://open-vsx.org/extension/overdodactyl/roam)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 **Bookmark and browse any directory on disk.** Roam adds a native sidebar
 file explorer to VS Code and Positron that isn't confined to your
 workspace root — pin any path (`~/`, a mounted share, an unrelated
@@ -79,7 +83,24 @@ inherits your file icon theme and git decorations for free.
 
 ## Install
 
-**From `.vsix`:**
+Roam is published on [Open VSX](https://open-vsx.org/extension/overdodactyl/roam),
+which is the extension marketplace used by Positron, VSCodium, Cursor,
+and other editors that build on VS Code's core.
+
+**Positron / VSCodium / Cursor / etc.**
+
+1. Open the Extensions view (`Ctrl+Shift+X`).
+2. Search for `roam` (publisher: `overdodactyl`).
+3. Click **Install**.
+
+**VS Code (Microsoft build)**
+
+VS Code's built-in extension search points at Microsoft's own marketplace,
+not Open VSX. Grab the `.vsix` from the
+[Open VSX release page](https://open-vsx.org/extension/overdodactyl/roam)
+and install it via `Ctrl+Shift+P` → **Extensions: Install from VSIX…**.
+
+**From source**
 
 ```sh
 git clone https://github.com/overdodactyl/roam
@@ -89,17 +110,11 @@ npm run compile
 npm run package        # produces roam.vsix
 ```
 
-Then in VS Code or Positron: `Ctrl+Shift+P` → `Extensions: Install from
-VSIX…` and pick `roam.vsix`. Reload the window.
+Then `Ctrl+Shift+P` → **Extensions: Install from VSIX…** → pick
+`roam.vsix`. Reload the window.
 
-**From Open VSX** (once published):
-
-```
-ext install overdodactyl.roam
-```
-
-Roam is designed to run on remote hosts via Remote SSH — VS Code will
-carry it across and every feature (including upload / download / live
+Roam is designed to run on remote hosts via Remote SSH — the editor
+will carry it across and every feature (upload / download / live
 refresh over NFS) works from there.
 
 ---
