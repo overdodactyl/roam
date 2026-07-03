@@ -2,7 +2,7 @@
   "name": "roam",
   "displayName": "Roam",
   "description": "Bookmark and browse any directory on disk — a native sidebar file explorer that isn't confined to the workspace root.",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "publisher": "overdodactyl",
   "license": "MIT",
   "repository": {
