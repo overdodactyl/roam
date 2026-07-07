@@ -4,6 +4,28 @@ All notable changes to Roam are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.3] — 2026-07-07
+
+### Changed
+- Bookmarks, groups, recent files, and the type filter are now persisted
+  to a JSON file on disk (`$XDG_CONFIG_HOME/roam/state.json`, or
+  `~/.config/roam/state.json` / `%APPDATA%\roam\state.json` by default)
+  instead of VS Code's `globalState`. On browser-based Positron / VS Code
+  installs (Posit Workbench, code-server), `globalState` is held in
+  browser IndexedDB and does not follow the user across browsers or
+  machines — even when `$HOME` is shared over NFS. File-backed storage
+  fixes this: your bookmarks now live with your home directory.
+- Existing data stored via `globalState` is migrated to the file
+  automatically on first launch. The old entries are left in place as a
+  fallback; nothing is deleted.
+- New setting `roam.storagePath` lets you point Roam at a different
+  location (e.g. a synced folder).
+
+### Known limitations
+- Two Positron / VS Code windows open against the same state file use
+  last-write-wins, the same as `globalState` across windows today. A
+  file watcher for cross-window sync is planned for a later release.
+
 ## [0.6.2] — 2026-07-03
 
 ### Changed

@@ -1,19 +1,21 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
-import { BookmarkStore } from './bookmarks';
+import { BookmarkStore, BOOKMARKS_KEY, GROUPS_KEY } from './bookmarks';
 import { BookmarkProvider } from './bookmarkProvider';
-import { RecentFilesStore } from './recentFiles';
+import { RecentFilesStore, RECENT_KEY } from './recentFiles';
 import { registerCommands } from './commands';
 import { BookmarkDragAndDropController } from './dragDrop';
 import { GitDecorationProvider } from './gitDecorations';
 import { BrowserClipboard } from './clipboard';
 import { ProjectDecorationProvider } from './projectDecorations';
 import { DirectoryWatcher } from './directoryWatcher';
-import { TypeFilterStore } from './typeFilter';
+import { TypeFilterStore, TYPE_FILTER_KEY } from './typeFilter';
 import { DiskUsageCache } from './diskUsage';
 import { initLogger, log, showLog } from './logger';
+import { FileStateStore, PersistentState, resolveStoragePath } from './fileState';
 
 const SEEDED_KEY = 'roam.defaultsSeeded';
+const MIGRATED_KEY = 'roam.migratedFromGlobalState';
 const SHOW_HIDDEN_CONTEXT = 'roam.showHiddenFiles';
 const SHOW_HIDDEN_SETTING = 'showHiddenFiles';
 const SHOW_MODIFIED_CONTEXT = 'roam.showModified';
@@ -21,14 +23,17 @@ const SHOW_MODIFIED_SETTING = 'showModified';
 const SHOW_SIZE_CONTEXT = 'roam.showSize';
 const SHOW_SIZE_SETTING = 'showSize';
 
-export function activate(context: vscode.ExtensionContext): void {
+const MIGRATION_KEYS = [BOOKMARKS_KEY, GROUPS_KEY, RECENT_KEY, TYPE_FILTER_KEY, SEEDED_KEY];
+
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const outputChannel = initLogger();
   context.subscriptions.push(outputChannel);
   log('extension activated');
 
-  const store = new BookmarkStore(context);
-  const recent = new RecentFilesStore(context);
-  const typeFilter = new TypeFilterStore(context);
+  const state = await loadPersistentState(context);
+  const store = new BookmarkStore(state);
+  const recent = new RecentFilesStore(state);
+  const typeFilter = new TypeFilterStore(state);
   const diskUsage = new DiskUsageCache();
   const gitDecorations = new GitDecorationProvider();
   const projectDecorations = new ProjectDecorationProvider();
@@ -126,9 +131,40 @@ export function activate(context: vscode.ExtensionContext): void {
   registerShowSizeToggle(context);
   registerConfigWatchers(context, provider);
 
-  seedDefaults(context, store).catch(() => {
+  seedDefaults(state, store).catch(() => {
     // Non-fatal — user can add bookmarks manually.
   });
+}
+
+async function loadPersistentState(context: vscode.ExtensionContext): Promise<FileStateStore> {
+  const settingValue = vscode.workspace.getConfiguration('roam').get<string>('storagePath');
+  const filePath = resolveStoragePath(settingValue);
+  const state = await FileStateStore.load(filePath);
+  log(`state file: ${filePath}`);
+  await migrateFromGlobalState(context, state);
+  return state;
+}
+
+async function migrateFromGlobalState(
+  context: vscode.ExtensionContext,
+  state: FileStateStore,
+): Promise<void> {
+  if (state.get<boolean>(MIGRATED_KEY, false)) {
+    return;
+  }
+  let migrated = 0;
+  for (const key of MIGRATION_KEYS) {
+    const oldValue = context.globalState.get<unknown>(key);
+    const alreadyInFile = state.get<unknown>(key);
+    if (oldValue !== undefined && alreadyInFile === undefined) {
+      await state.update(key, oldValue);
+      migrated++;
+    }
+  }
+  await state.update(MIGRATED_KEY, true);
+  if (migrated > 0) {
+    log(`migrated ${migrated} state key${migrated === 1 ? '' : 's'} from globalState to file`);
+  }
 }
 
 export function deactivate(): void {
@@ -236,19 +272,19 @@ function syncShowHiddenContext(): void {
   vscode.commands.executeCommand('setContext', SHOW_HIDDEN_CONTEXT, value);
 }
 
-async function seedDefaults(context: vscode.ExtensionContext, store: BookmarkStore): Promise<void> {
-  if (context.globalState.get<boolean>(SEEDED_KEY)) {
+async function seedDefaults(state: PersistentState, store: BookmarkStore): Promise<void> {
+  if (state.get<boolean>(SEEDED_KEY, false)) {
     return;
   }
   if (store.listBookmarks().length > 0) {
-    await context.globalState.update(SEEDED_KEY, true);
+    await state.update(SEEDED_KEY, true);
     return;
   }
   const home = process.env.HOME;
   if (home && directoryExists(home)) {
     await store.addBookmark(home, 'Home');
   }
-  await context.globalState.update(SEEDED_KEY, true);
+  await state.update(SEEDED_KEY, true);
 }
 
 function directoryExists(p: string): boolean {
