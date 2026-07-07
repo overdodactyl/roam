@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import type { PersistentState } from './fileState';
 
 export interface Bookmark {
   id: string;
@@ -15,22 +16,22 @@ export interface Group {
   order?: number;
 }
 
-const BOOKMARKS_KEY = 'roam.bookmarks';
-const GROUPS_KEY = 'roam.groups';
+export const BOOKMARKS_KEY = 'roam.bookmarks';
+export const GROUPS_KEY = 'roam.groups';
 
 export class BookmarkStore {
   private readonly _onDidChange = new vscode.EventEmitter<void>();
   readonly onDidChange = this._onDidChange.event;
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly state: PersistentState) {}
 
   listBookmarks(): Bookmark[] {
-    const bookmarks = this.context.globalState.get<Bookmark[]>(BOOKMARKS_KEY, []);
+    const bookmarks = this.state.get<Bookmark[]>(BOOKMARKS_KEY, []);
     return [...bookmarks].sort(compareOrder);
   }
 
   listGroups(): Group[] {
-    const groups = this.context.globalState.get<Group[]>(GROUPS_KEY, []);
+    const groups = this.state.get<Group[]>(GROUPS_KEY, []);
     return [...groups].sort(compareOrder);
   }
 
@@ -184,12 +185,12 @@ export class BookmarkStore {
   }
 
   private async persistBookmarks(bookmarks: Bookmark[]): Promise<void> {
-    await this.context.globalState.update(BOOKMARKS_KEY, bookmarks);
+    await this.state.update(BOOKMARKS_KEY, bookmarks);
     this._onDidChange.fire();
   }
 
   private async persistGroups(groups: Group[]): Promise<void> {
-    await this.context.globalState.update(GROUPS_KEY, groups);
+    await this.state.update(GROUPS_KEY, groups);
     this._onDidChange.fire();
   }
 }
